@@ -7,7 +7,7 @@ include(funcoes);
 $keys=array('nome', 'sobrenome', 'email', 'password', 'tipo');
 
 //$keys=array('name','mobile','password','type');
-for ($i = 0; $i < count($keys); $i++){
+/*for ($i = 0; $i < count($keys); $i++){
 	if(!isset($_POST[$keys[$i]]))
 	 {
 		  $response['error'] = true;
@@ -18,18 +18,23 @@ for ($i = 0; $i < count($keys); $i++){
 
 }
 
+$password = $_POST['password'];
+$email = $_POST['email'];
+$nome = $_POST['nome'];
+$sobrenome = $_POST['sobrenome'];
+$tipo = $_POST['tipo'];*/
 
-
-$password=$_POST['password'];
-$email=$_POST['email'];
-$nome=$_POST['nome'];
-$sobrenome=$_POST['sobrenome'];
-$tipo=$_POST['tipo'];
+$senha = '123456';
+$email = 'nicoleeguido@gmail.com';
+$nome = 'Nicole';
+$sobrenome = 'Guido';
+$tipo = '1';
+$token = generate_random_string(12);
 
 
 //checking if the user is already exist with this username or email
 					//as the email and username should be unique for every user
-					$stmt = $con->prepare("SELECT id FROM z_dummy_users WHERE email = ? ");
+					$stmt = $mysqli->prepare("SELECT usuario_id FROM usuario WHERE usuario_email = ? ");
 					$stmt->bind_param("s", $email);
 					$stmt->execute();
 					$stmt->store_result();
@@ -37,30 +42,33 @@ $tipo=$_POST['tipo'];
 					//if the user already exist in the database
 					if($stmt->num_rows > 0){
 						$response['error'] = true;
-						$response['message'] = 'User already registered';
+						$response['message'] = 'Usuario ja registrado';
 						$stmt->close();
 
 					}else{
 
 						//if user is new creating an insert query
-						$stmt = $con->prepare("INSERT INTO z_dummy_users ( name,email, password) VALUES (?,?,  ?)");
-						$stmt->bind_param("sss",  $name, $email, $password);
+						$stmt = $mysqli->prepare("INSERT INTO usuario ( usuario_nome, usuario_sobrenome, usuario_email, usuario_senha, usuario_tipo, usuario_token) VALUES (?,?,?,?,?,?)");
+						$stmt->bind_param("ssssss",  $nome, $sobrenome, $email, $senha, $tipo, $token);
 
 						//if the user is successfully added to the database
 						if($stmt->execute()){
 
 							//fetching the user back
-							$stmt = $con->prepare("SELECT * FROM z_dummy_users WHERE email = ?");
+							$stmt = $mysqli->prepare("SELECT * FROM usuario WHERE usuario_email = ?");
 							$stmt->bind_param("s",$email);
 							$stmt->execute();
-							$stmt->bind_result( $id, $name, $email,$password);
+							$stmt->bind_result( $id,$email,$senha, $nome,$sobrenome,$tipo, $token );
 							$stmt->fetch();
 
 							$user = array(
-								'id'=>$id,
-								'name'=>$name,
-								'email'=>$email,
-								'password'=>$password
+								'id' => $id,
+								'nome' => $nome,
+								'sobrenome' => $sobrenome,
+								'email' => $email,
+								'senha' => $senha,
+								'tipo' => $tipo,
+								'token' => $token
 
 							);
 
@@ -68,7 +76,7 @@ $tipo=$_POST['tipo'];
 
 							//adding the user data in response
 							$response['error'] = false;
-							$response['message'] = 'User registered successfully';
+							$response['message'] = 'Usuario registrado com sucesso!';
 							$response['data'] = $user;
 
 						}

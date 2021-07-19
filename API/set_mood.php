@@ -21,4 +21,8 @@
 	
 	$emocoes_feliz=1; $emocoes_sensivel=1; $emocoes_triste=1; $emocoes_raiva=0; $sono_0a3=0; $sono_3a6=0; $sono_6a9=0; $sono_9oumais=1; $vitalidade_ativo=1; $vitalidade_alta=1; $vitalidade_baixa=0; $vitalidade_exaustao=0; $banheiro_otimo=1; $banheiro_normal=1; $banheiro_prisaoventre=0; $banheiro_diarreia=0; $desejo_doce=1; $desejo_salgado=0; $desejo_carboidratos=1; $digestao_otimo=0; $digestao_inchaco=1; $digestao_enjoo=0; $digestao_comgases=1; $pele_boa=0; $pele_oleosa=1; $pele_seca=0; $pele_acne=1; $mental_focado=1; $mental_tranquilidade=0; $mental_distracao=0; $mental_estresse=0; $motivacao_motivado=0; $motivacao_desanimado=0; $motivacao_produtivo=0; $motivacao_preguica=1; $peso_kg=82.5; $exercicio_corrida=1; $exercicio_academia=1; $exercicio_bicicleta=1; $exercicio_natacao=0; $festa_bebidas=0; $festa_fumo=0; $festa_ressaca=0; $festa_outrassubs=0;
 
+
+	//check if the user already has a mood for the day
+
+
 	?>

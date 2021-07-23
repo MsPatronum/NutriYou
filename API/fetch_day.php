@@ -21,8 +21,8 @@
 	$user_id = $_POST['user_id'];
 	$date = $_POST['date'];*/
 	
-	$user_id = 1;
-	$date = '2021-07-09';
+	$user_id = 2;
+	$date = '2021-07-23';
 	
 	
 	//checking if the user already has a day setup
@@ -60,7 +60,7 @@
 	//if the day doesn't exist, create it and select it!
 	}else if ($stmt->num_rows == 0) {
 
-		$stmt = $mysqli->prepare("CALL new_day(?, ?)");
+		$stmt = $mysqli->prepare("CALL new_day(?, ?, @resposta)");
 		$stmt->bind_param("ss",  $user_id, $date);
 
 

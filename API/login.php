@@ -20,7 +20,7 @@ $keys=array('email','senha');
 $email=$_POST['email'];
 $senha=$_POST['senha'];*/
 
-$email='nicoleeguido@gmail.com';
+$email='nicoleeguido@hotmail.com';
 $senha='123456';
 
 $stmt = $mysqli->prepare("SELECT * FROM usuario WHERE usuario_email = ? AND usuario_senha = ?");

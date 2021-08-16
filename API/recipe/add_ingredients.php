@@ -3,7 +3,7 @@
 	
 	include(conexao);
 	
-	$keys=array('receita_id', 'ingrediente_id', 'qtd');
+	//$keys=array('receita_id', 'ingrediente_id', 'qtd');
 	
 	//
 	/*for ($i = 0; $i < count($keys); $i++){
@@ -23,16 +23,35 @@
 	*/
 	
 	// DADOS PARA TESTE
-	$receita_id = 1;
-	$ingrediente_id = 4;
-	$qtd = 150; //em gramas
-
+	$json_input = '{"receita_id": 1,"ingredientes":[{"ingrediente_id": 1,"quantidade": 100},{"ingrediente_id": 2,"quantidade": 120},{"ingrediente_id": 3,"quantidade": 190}]}';
+	
 	//FIM DOS DADOS PARA TESTE
 
-	//preciso passar a quantidade de gramas para a medida cadastrada, cada 100 gramas
-	$qtd_ingrediente = $qtd/100;
+	//decodificando o array
+	$json = json_decode($json_input);
+	//preciso passar a quantidade de gramas para a medida cadastrada, no caso... 100 gramas
+	$insert_stmt = "INSERT INTO receita_ingredientes (receita_id, ingredientes_id, receita_ingredientes_qtd) VALUES ";
+
+	echo end($json);
+	foreach ($json->ingredientes as $ing){
+		if (isset($ing->ingrediente_id) && $ing->ingrediente_id>=1){
+        	$qtd_ingrediente = $ing->quantidade/100;
+        	$insert_stmt .= "(".$json->receita_id.",".$ing->ingrediente_id.",".$qtd_ingrediente."),";
+    	}elseif (isset($ing->ingrediente_id) && $ing->ingrediente_id == end($ing->ingrediente_id)) {
+    		$qtd_ingrediente = $ing->quantidade/100;
+    		$insert_stmt .= "(".$json->receita_id.",".$ing->ingrediente_id.",".$qtd_ingrediente.");";
+    	}
+	}
+
+	echo $insert_stmt;
+
+/*$stmt = $mysqli->prepare("INSERT INTO receita_ingredientes (receita_id, ingredientes_id, receita_ingredientes_qtd) VALUES (".$json->receita_id.",".$ing->ingrediente_id.",".$qtd_ingrediente.");");
+        	$stmt->execute();*/
+
+
+
 	
-	$stmt = $mysqli->prepare("INSERT INTO receita_ingredientes (receita_id, ingredientes_id, receita_ingredientes_qtd) VALUES (?,?,?)");
+	/*$stmt = $mysqli->prepare("INSERT INTO receita_ingredientes (receita_id, ingredientes_id, receita_ingredientes_qtd) VALUES (?,?,?)");
 	$stmt->bind_param("sss", $receita_id, $ingrediente_id, $qtd_ingrediente);
 		
 		//if the recipe is successfully added to the database
@@ -69,7 +88,7 @@
 		$stmt->close();
 	}
 	
-	echo json_encode($response);
+	echo json_encode($response);*/
 
 
 ?>

@@ -7,8 +7,8 @@ include(funcoes);
 $keys=array('nome', 'sobrenome', 'email', 'senha', 'tipo', 'peso', 'sexo', 'data_nasc', 'is_active', 'altura');
 
 //
-/*for ($i = 0; $i < count($keys); $i++){
-	if(!isset($_POST[$keys[$i]]))
+for ($i = 0; $i < count($keys); $i++){
+	if(!isset($obj[$keys[$i]]))
 	 {
 		  $response['error'] = true;
 			$response['message'] = 'Required Filed Missed';
@@ -18,20 +18,25 @@ $keys=array('nome', 'sobrenome', 'email', 'senha', 'tipo', 'peso', 'sexo', 'data
 
 }
 
-$senha = $_POST['senha'];
-$email = $_POST['email'];
-$nome = $_POST['nome'];
-$sobrenome = $_POST['sobrenome'];
-$tipo = $_POST['tipo'];
-$peso = $_POST['peso'];
-$sexo = $_POST['sexo'];
-$data_nasc = $_POST['data_nasc'];
-$is_active = $_POST['is_active'];
-$altura = $_POST['altura'];
-$token = generate_random_string(12)*/
+$senha = $obj['senha'];
+$email = $obj['email'];
+$nome = $obj['nome'];
+$sobrenome = $obj['sobrenome'];
+$tipo = $obj['tipo'];
+$peso = $obj['peso'];
+$sexo = $obj['sexo'];
+$data = $obj['data_nasc'];
+$is_active = $obj['is_active'];
+$altura = $obj['altura'];
+$token = generate_random_string(12);
+
+
+$date = str_replace('/', '-', $data);
+$data_nasc = date('Y-m-d', strtotime($date));
+
 
 // DADOS PARA TESTE
-$senha = '123456';
+/*$senha = '123456';
 $email = 'nicoleeguido@hotmail.com';
 $nome = 'Nicole';
 $sobrenome = 'Guido Medico';
@@ -41,15 +46,17 @@ $sexo = 'F';
 $data_nasc = '2000-07-20';
 $is_active = 0;
 $altura = 1.66;
-$token = generate_random_string(12);
+$token = generate_random_string(12);*/
 //FIM DOS DADOS PARA TESTE
 
 //checking if the user is already exist with this username or email
 //as the email and username should be unique for every user
-$stmt = $mysqli->prepare("SELECT usuario_id FROM usuario WHERE usuario_email = ? ");
+
+$stmt = $mysqli->prepare("SELECT usuario_id FROM usuario WHERE usuario_email = ?");
 $stmt->bind_param("s", $email);
 $stmt->execute();
 $stmt->store_result();
+
 
 //if the user already exist in the database
 if($stmt->num_rows > 0){
@@ -91,7 +98,7 @@ if($stmt->num_rows > 0){
 
 	}else{
 		$response['error'] = true;
-		$response['message'] = 'Erro na criação do usuario.';
+		$response['message'] = 'Erro na criacao do usuario.';
 		$stmt->close();
 	}
 

@@ -9,6 +9,4 @@
         return $randomString;
     }
 
-
-
 ?>

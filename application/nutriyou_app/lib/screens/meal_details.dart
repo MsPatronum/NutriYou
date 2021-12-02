@@ -7,6 +7,7 @@ import 'package:nutriyou_app/Widgets/WidgetRefeicao_MealDetail.dart';
 import 'package:http/http.dart' as http;
 import 'package:nutriyou_app/app_colors.dart';
 import 'package:nutriyou_app/const.dart';
+import 'package:nutriyou_app/models/itensRefeicao.dart';
 import 'package:nutriyou_app/models/mealListModel.dart';
 import 'package:nutriyou_app/models/mealsModel.dart';
 import 'package:nutriyou_app/screens/add_recipe.dart';
@@ -53,13 +54,13 @@ class _MealDetailState extends State<MealDetail> {
 
     var response = await http.post(Uri.parse(urlbuscadetalhesrefeicao), body: json.encode(data));
     if (response.statusCode == 200) {
-        final message = ItensMealList.fromJson(json.decode(response.body));
-
+        final message = ItensRefeicao.fromJson(json.decode(response.body));
   
         if(message.cod == 2){
           return message;
         }else{
-          final Map parsed = json.decode(message); 
+          var itensRefeicao = itensRefeicaoFromJson(response.body);
+          return (itensRefeicao);
         }
       }
     else {
@@ -302,7 +303,7 @@ class _MealDetailState extends State<MealDetail> {
                 padding: EdgeInsets.only(top: 230, left: 15, right: 15),
                 child:
                     FutureBuilder(
-                      future: fetchMealList(1, widget.data),
+                      future: fetchMealList(widget.idRefeicao, widget.data),
                       builder: (context, snapshotMealList){
                         if(snapshotMealList.hasData){
                           if(snapshotMealList.data.cod == 2){

@@ -5,7 +5,7 @@
     include(conexao);
     include(funcoes);
     
-    /*$keys=array('user_id', 'date', 'refeicao_cod');
+    $keys=array('user_id', 'date', 'refeicao_cod');
     
     for ($i = 0; $i < count($keys); $i++){
         if(!isset($obj[$keys[$i]]))
@@ -22,11 +22,11 @@
     // Populate ID from JSON $obj array and store into $ID variable.
     $user_id = $obj['user_id'];
     $date = $obj['date'];
-    $refeicao_cod = $obj['refeicao_cod'];*/
+    $refeicao_cod = $obj['refeicao_cod'];
 
-    $user_id = 1;
+    /*$user_id = 1;
     $date = '2021-12-02';
-    $refeicao_cod = 1;
+    $refeicao_cod = 1*/
  
     //Fetching the selected record as per ID.
     $stmt = $mysqli->prepare("SELECT v.receita_id, v.receita_nome, v.receita_kcal FROM v_userdiameal v WHERE

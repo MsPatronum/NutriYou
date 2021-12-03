@@ -19,7 +19,13 @@ Future getNome() async {
 }
 
 calculatePercentage(double config, double consumed){
-  return consumed/config;
+  var percentage = consumed/config;
+  if(percentage >=1){
+    return 1.0;
+  }else{
+    return percentage;
+  }
+ 
 }
 
 subtraction(double bnumber, double snumber){

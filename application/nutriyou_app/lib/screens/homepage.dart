@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
@@ -63,6 +64,10 @@ Future<ItensRefeicaoMessage> fetchMeals(int idrefeicao) async {
     }
   
 }
+_refreshAction() {
+  setState(() {
+  });
+}
 
 
   @override
@@ -78,15 +83,29 @@ Future<ItensRefeicaoMessage> fetchMeals(int idrefeicao) async {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    FutureBuilder(
-                      future: getNome(), 
-                      builder: (context, snapshot){
-                        if(snapshot.hasData){
-                          return BodyText(texto: 'Bem vindo(a),  ${snapshot.data}', tamFonte: 20,);
-                        }
-                        return CircularProgressIndicator();
-                      },
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children:[
+                        FutureBuilder(
+                          future: getNome(), 
+                          builder: (context, snapshot){
+                            if(snapshot.hasData){
+                              return BodyText(texto: 'Bem vindo(a),  ${snapshot.data}', tamFonte: 20,);
+                            }
+                            return CircularProgressIndicator();
+                          },
+                        ),
+                        ElevatedButton(
+                          style: ButtonStyle(
+                            elevation: MaterialStateProperty.all(0), 
+                            backgroundColor: MaterialStateProperty.all(Colors.transparent),
+                          ),
+                          child: Icon(Icons.replay_outlined,color: Colors.teal,size: 35,),
+                          onPressed: _refreshAction,
+                        )
+                      ],
                     ),
+                    
                     FutureBuilder<MacrosMessage>(
                       future: fetchMacros(), 
                       builder: (context, macrossnapshot){

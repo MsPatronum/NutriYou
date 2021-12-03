@@ -36,7 +36,7 @@ class MealDetail extends StatefulWidget {
   final String imagem;
   final Color corFundoIcon;
   final int idRefeicao;
-  final Future<List<ItensMealList>> meallist;
+  final Future<List<ItensRefeicao>> meallist;
 }
 class _MealDetailState extends State<MealDetail> {
 
@@ -55,21 +55,39 @@ class _MealDetailState extends State<MealDetail> {
     var response = await http.post(Uri.parse(urlbuscadetalhesrefeicao), body: json.encode(data));
     if (response.statusCode == 200) {
         final message = ItensRefeicao.fromJson(json.decode(response.body));
-  
-        if(message.cod == 2){
-          return message;
-        }else{
-          var itensRefeicao = itensRefeicaoFromJson(response.body);
-          return (itensRefeicao);
-        }
+            List itensRefeicao = message?.data?.toList();
+            print(itensRefeicao);
+            return itensRefeicao;
+          
+         // return (itensRefeicao as Map);
       }
     else {
       throw Exception('Failed to load data from Server.');
     }
   }
+  Future fetchMealDetails(int refeicaoCod, DateTime date) async {
 
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('id');
+
+    String datem = DateFormat("yyyy-MM-dd").format(date);
+    var data = {'user_id': userId, 'date' : datem, 'refeicao_cod': widget.idRefeicao};
+
+    var response = await http.post(Uri.parse(urlbuscadetalhesrefeicao), body: json.encode(data));
+    if (response.statusCode == 200) {
+        final message = ItensRefeicao.fromJson(json.decode(response.body));
+        return message;
+         // return (itensRefeicao as Map);
+      }
+    else {
+      throw Exception('Failed to load data from Server.');
+    }
+  }
+  _refreshAction() {
+    setState(() {
+    });
+  }
   void initState() {
-    print(widget.idRefeicao.toString() + "+++++++++++++++++++++++++++++++");
     super.initState();
   }
 
@@ -150,6 +168,14 @@ class _MealDetailState extends State<MealDetail> {
                             ),
                           ),
                         ),
+                        ElevatedButton(
+                          style: ButtonStyle(
+                            elevation: MaterialStateProperty.all(0), 
+                            backgroundColor: MaterialStateProperty.all(Colors.transparent),
+                          ),
+                          child: Icon(Icons.replay_outlined,color: Colors.teal,size: 35,),
+                          onPressed: _refreshAction,
+                        )
                       ],
                     ),
                   ),
@@ -181,7 +207,7 @@ class _MealDetailState extends State<MealDetail> {
                                     children: [
                                       Text("Total de calorias da refeição:",),
                                       FutureBuilder(
-                                        future: fetchMealList(1, widget.data),
+                                        future: fetchMealDetails(widget.idRefeicao, widget.data),
                                         builder: (context, snapshotMealList){
                                           if(snapshotMealList.hasData){
                                             double soma = 0;
@@ -208,7 +234,8 @@ class _MealDetailState extends State<MealDetail> {
                                           }
                                           print(snapshotMealList.connectionState.toString());
                                           return CircularProgressIndicator();
-                                        },),
+                                        },
+                                      ),
                                     ]
                                 ),
                               ),
@@ -306,7 +333,26 @@ class _MealDetailState extends State<MealDetail> {
                       future: fetchMealList(widget.idRefeicao, widget.data),
                       builder: (context, snapshotMealList){
                         if(snapshotMealList.hasData){
-                          if(snapshotMealList.data.cod == 2){
+                          List<Data> data = snapshotMealList.data ?? [];
+                          if(snapshotMealList.data.length > 0){
+                            return Container(
+                                height: 500,
+                                child: ListView.builder(
+                                    itemCount: data.length,
+                                    scrollDirection: Axis.vertical,
+                                    itemBuilder: (BuildContext context, int index) {
+                                      return WidgetRefeicao_MealDetails(
+                                            NomeRefeicao: data[index].receitaNome,
+                                            TipoAlimento: "",
+                                            CodRefeicao: data[index].receitaId,
+                                            kCal: data[index].receitaKcal.toStringAsPrecision(3),
+                                            DelBtn: true, 
+                                            Dieta: '',
+                                      );
+                                    }
+                                )
+                            );
+                          }else{
                             return Center(
                               child: Container(
                                 margin: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.25),
@@ -320,37 +366,21 @@ class _MealDetailState extends State<MealDetail> {
                                 )
                               )
                             );
-                          }else{
-                            return Container(
-                                height: 500,
-                                child: ListView.builder(
-                                    itemCount: snapshotMealList.data.length,
-                                    scrollDirection: Axis.vertical,
-                                    itemBuilder: (BuildContext context, int index) {
-                                      return  WidgetRefeicao_MealDetails(
-                                            NomeRefeicao: snapshotMealList.data[1].data.nomeReceita.toString(),
-                                            TipoAlimento: "",
-                                            CodRefeicao: snapshotMealList.data[1].data.receitaId.toInt(),
-                                            kCal: snapshotMealList.data[1].data.receitaKcal.toStringAsPrecision(3),
-                                            DelBtn: true, 
-                                            Dieta: '',
-                                      );
-                                    }
-                                )
-                            );
-                            // for (int i = 0; i < snapshotMealList.data.length.toInt(); i++ ){
-                            //   print("for i" + [i].toString());
-                            //
-                            //   // return  WidgetRefeicao_MealDetails(
-                            //   //    nomeRefeicao: snapshotMealList.data[i].nomeReceita.toString(),
-                            //   //    TipoAlimento: snapshotMealList.data[i].tags.toString(),
-                            //   //    CodRefeicao: snapshotMealList.data[i].receitaId.toInt(),
-                            //   //    kCal: snapshotMealList.data[i].receitaKcal.toString(),
-                            //   //    DelBtn: true,
-                            //   //  );
-                            // }
                           }
                         }else if(snapshotMealList.hasError){
+                          return Center(
+                              child: Container(
+                                  child: Text(
+                                    "Ainda não há nada aqui",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.black,
+                                    ),
+                                  )
+                              )
+                          );
+                        }else if(snapshotMealList.hasData == false){
                           return Center(
                               child: Container(
                                   child: Text(
@@ -366,7 +396,8 @@ class _MealDetailState extends State<MealDetail> {
                         }
                         print(snapshotMealList.connectionState.toString());
                         return CircularProgressIndicator();
-                      },),
+                      },
+                    ),
 
 
               )

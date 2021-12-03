@@ -11,7 +11,7 @@ include("../config.php");
 	$receitaId = $obj['cod_receita'];
 	$today = $obj['data'];
 
-	$InsertQuery = "call add_receitanarefeicao($userId, $idRefeicao, $receitaId, $today, @resultado)";
+	$InsertQuery = "call add_receitanarefeicao($userId, $idRefeicao, $receitaId, '$today', @resultado)";
 
 
         $executa=$mysqli->query($InsertQuery);

@@ -83,6 +83,7 @@ class _MealSearchState extends State<MealSearch> {
     // Navigator.pop(context);
 
     var data = {'user_id' : userId, 'refeicao_id' : refeicaoId, 'cod_receita': codReceita, 'data': datem};
+    print(data);
 
     var response = await http.post(Uri.parse(url_addreceitaarefeicao), body: json.encode(data));
     print(response.body);

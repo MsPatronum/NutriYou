@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-var constUrl = '172.18.160.1';
+var constUrl = '192.168.1.124';
 
 link(String page){
   return ('http://'+ constUrl +'/NutriYou/API/'+page);
@@ -26,6 +26,11 @@ calculatePercentage(double config, double consumed){
     return percentage;
   }
  
+}
+
+transformToNoDecimal(String valor){
+  var value = double.parse(valor).toStringAsFixed(0);
+  return value;
 }
 
 subtraction(double bnumber, double snumber){

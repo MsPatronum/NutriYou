@@ -14,7 +14,6 @@ class _MeViewState extends State<MeView> {
         backgroundColor: Colors.grey[50],
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          brightness: Brightness.light,
           elevation: 0,
         ),
         body: SingleChildScrollView(

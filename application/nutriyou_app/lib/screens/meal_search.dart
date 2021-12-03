@@ -1,16 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:nutriyou_app/const.dart';
-import 'package:nutriyou_app/routing_constants.dart';
-import 'package:nutriyou_app/screens/meal_details.dart';
 import 'package:nutriyou_app/Widgets/WidgetRefeicao_MealDetail.dart';
-import 'package:nutriyou_app/Widgets/WidgetRefeicaoHome.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MealSearch extends StatefulWidget {
@@ -27,6 +23,8 @@ class ReturnMealSearch{
     this.receitaId,
     this.receitaNome,
     this.receitaDescricao,
+    this.receitaKcal,
+    this.receitaNivel,
     this.receitaTempoPrep,
     this.receitaImageUrl,
   });
@@ -34,14 +32,18 @@ class ReturnMealSearch{
   String receitaNome;
   String receitaDescricao;
   String receitaTempoPrep;
+  String receitaNivel;
+  double receitaKcal;
   String receitaImageUrl;
 
   factory ReturnMealSearch.fromJson(Map<String, dynamic> json){
     return ReturnMealSearch(
         receitaId: json["receita_id"] == null ? "0" : json["receita_id"],
         receitaNome: json["receita_nome"] == null ? "0" : json["receita_nome"],
-        receitaDescricao: json["receita_descricao"] == null ? "0" : json["receita_descricao"],
-        receitaTempoPrep: json["receita_tempopreparo"] == null ? "0" : json["receita_tempopreparo"],
+        receitaDescricao: json["receita_desc"] == null ? "0" : json["receita_desc"],
+        receitaTempoPrep: json["receita_tempo_preparo"] == null ? "0" : json["receita_tempo_preparo"],
+        receitaNivel : json["rn_nivel"] == null ? "0" : json["rn_nivel"],
+        receitaKcal: json["energy_kcal"] == null ? "0" : json["energy_kcal"],
         receitaImageUrl: json["receita_imagemurl"] == null ? "0" : json["receita_imagemurl"]
     );}}
 
@@ -51,7 +53,7 @@ class _MealSearchState extends State<MealSearch> {
 
   var url_mealsearch = link('search_meals.php');
 
-  Future<List<ReturnMealSearch>> searchMeals(searchQuery) async {
+  Future searchMeals(searchQuery) async {
 
     var data = {'search_query' : searchQuery};
     print(data.toString());
@@ -62,6 +64,7 @@ class _MealSearchState extends State<MealSearch> {
       if(response.body.contains("No Results Found")){
       }else{
         var jsonData = json.decode(response.body).cast<Map<String, dynamic>>();
+        print(response.body);
         List<ReturnMealSearch> MealSearch = jsonData.map<ReturnMealSearch>((json) {
           return new ReturnMealSearch.fromJson(json);
         }).toList();
@@ -118,7 +121,7 @@ class _MealSearchState extends State<MealSearch> {
           body:Container(
             margin: EdgeInsets.symmetric(horizontal: 15),
             padding: EdgeInsets.only(top: 70),
-            child:FutureBuilder<List<ReturnMealSearch>>(
+            child:FutureBuilder(
               future: searchMeals(selectedTerm),
               builder: (context, snapshotMealSearch){
                 if(!snapshotMealSearch.hasData){
@@ -134,9 +137,9 @@ class _MealSearchState extends State<MealSearch> {
                           )
                       )
                   );
-                }else if(snapshotMealSearch.hasData){
+                }else if(snapshotMealSearch.hasData){print(snapshotMealSearch.data.first.receitaKcal.toString());
                   if(snapshotMealSearch.data.first.receitaNome == null){
-
+                      
                   }else{
                     return Container(
                         height: MediaQuery.of(context).size.height,
@@ -155,7 +158,8 @@ class _MealSearchState extends State<MealSearch> {
                                   NomeRefeicao: snapshotMealSearch.data[index].receitaNome.toString(),
                                   TipoAlimento: "Tempo " + snapshotMealSearch.data[index].receitaTempoPrep.toString(),
                                   CodRefeicao: snapshotMealSearch.data[index].receitaId.toInt(),
-                                  kCal: snapshotMealSearch.data[index].receitaDescricao.toString(),
+                                  kCal:  snapshotMealSearch.data[index].receitaKcal.toString(),
+                                  Dieta: snapshotMealSearch.data[index].receitaNivel,
                                   DelBtn: false,
                                 )),
                               );

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:nutriyou_app/const.dart';
 import 'package:nutriyou_app/screens/recipe_view.dart';
 
 class WidgetRefeicao_MealDetails extends StatelessWidget {
@@ -98,9 +99,10 @@ class WidgetRefeicao_MealDetails extends StatelessWidget {
                                           maxLines: 1,
                                           text: TextSpan(
                                             style: TextStyle(
-                                                color: Colors.grey.shade800
+                                              color: Colors.grey.shade800,
+                                              fontWeight: FontWeight.w700
                                             ),
-                                            text: TipoAlimento,
+                                            text: Dieta,
                                           )
                                       ),
                                     ),
@@ -118,10 +120,10 @@ class WidgetRefeicao_MealDetails extends StatelessWidget {
                                           maxLines: 1,
                                           text: TextSpan(
                                             style: TextStyle(
-                                                color: Colors.grey.shade800,
+                                              color: Colors.grey.shade800,
                                               fontWeight: FontWeight.w700
                                             ),
-                                            text: kCal+"kcal",
+                                            text: transformToNoDecimal(kCal.toString())+"kcal",
                                           )
                                       ),
                                     ),
@@ -136,7 +138,7 @@ class WidgetRefeicao_MealDetails extends StatelessWidget {
               ),
               Spacer(),
               Container(
-                margin: EdgeInsets.only(right: 8),
+                margin: EdgeInsets.only(right: 3),
                 transformAlignment: Alignment.center,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),

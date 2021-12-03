@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import
+
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +44,8 @@ class _MealDetailState extends State<MealDetail> {
 
   String datem = DateFormat("yyyy-MM-dd").format(DateTime.now().toUtc());
 
-  var urlbuscadetalhesrefeicao = link('day/fetch_meals_meal.php');
+  var urlbuscadetalhesrefeicao = link('day/fetch_meals_day.php');
+  var urlbuscalistarefeicao = link('day/fetch_meals_recipe.php');
 
   Future fetchMealList(int refeicaoCod, DateTime date) async {
 
@@ -52,7 +55,7 @@ class _MealDetailState extends State<MealDetail> {
     String datem = DateFormat("yyyy-MM-dd").format(date);
     var data = {'user_id': userId, 'date' : datem, 'refeicao_cod': widget.idRefeicao};
 
-    var response = await http.post(Uri.parse(urlbuscadetalhesrefeicao), body: json.encode(data));
+    var response = await http.post(Uri.parse(urlbuscalistarefeicao), body: json.encode(data));
     if (response.statusCode == 200) {
         final message = ItensRefeicao.fromJson(json.decode(response.body));
             List itensRefeicao = message?.data?.toList();
@@ -65,7 +68,7 @@ class _MealDetailState extends State<MealDetail> {
       throw Exception('Failed to load data from Server.');
     }
   }
-  Future fetchMealDetails(int refeicaoCod, DateTime date) async {
+  Future<ItensRefeicaoMessage> fetchMealDetails(int refeicaoCod, DateTime date) async {
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final userId = prefs.getInt('id');
@@ -75,7 +78,7 @@ class _MealDetailState extends State<MealDetail> {
 
     var response = await http.post(Uri.parse(urlbuscadetalhesrefeicao), body: json.encode(data));
     if (response.statusCode == 200) {
-        final message = ItensRefeicao.fromJson(json.decode(response.body));
+        final message = ItensRefeicaoMessage.fromJson(json.decode(response.body));
         return message;
          // return (itensRefeicao as Map);
       }
@@ -210,12 +213,9 @@ class _MealDetailState extends State<MealDetail> {
                                         future: fetchMealDetails(widget.idRefeicao, widget.data),
                                         builder: (context, snapshotMealList){
                                           if(snapshotMealList.hasData){
-                                            double soma = 0;
-                                            // for (int i = 0; snapshotMealList.data.length > i; i++){
-                                            //   //soma = soma + snapshotMealList.data[i].refeicaoKcal;
-                                            // }
+                                            var kcal = snapshotMealList.data.data == null ? "0" : snapshotMealList.data.data.refeicaokcal.toString() ;
                                             return Text(
-                                              soma.toStringAsFixed(0) + " kCal",
+                                              transformToNoDecimal(kcal).toString() + " kCal",
                                               style: TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
@@ -345,9 +345,9 @@ class _MealDetailState extends State<MealDetail> {
                                             NomeRefeicao: data[index].receitaNome,
                                             TipoAlimento: "",
                                             CodRefeicao: data[index].receitaId,
-                                            kCal: data[index].receitaKcal.toStringAsPrecision(3),
+                                            kCal: data[index].receitaKcal.toString(),
                                             DelBtn: true, 
-                                            Dieta: '',
+                                            Dieta: data[index].refeicaoCategorias,
                                       );
                                     }
                                 )

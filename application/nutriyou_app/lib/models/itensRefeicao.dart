@@ -41,21 +41,25 @@ class Data {
         this.receitaId,
         this.receitaNome,
         this.receitaKcal,
+        this.refeicaoCategorias
     });
 
     final int receitaId;
     final String receitaNome;
     final double receitaKcal;
+    final String refeicaoCategorias;
 
     factory Data.fromJson(Map<String, dynamic> json) => Data(
         receitaId: json["receita_id"] == null ? null : json["receita_id"],
         receitaNome: json["receita_nome"] == null ? null : json["receita_nome"],
         receitaKcal: json["receita_kcal"] == null ? null : json["receita_kcal"].toDouble(),
+        refeicaoCategorias : json["refeicao_categorias"] == null ? null : json["refeicao_categorias"],
     );
 
     Map<String, dynamic> toJson() => {
         "receita_id": receitaId == null ? null : receitaId,
         "receita_nome": receitaNome == null ? null : receitaNome,
         "receita_kcal": receitaKcal == null ? null : receitaKcal,
+        "refeicao_categorias": refeicaoCategorias == null ? null : refeicaoCategorias
     };
 }

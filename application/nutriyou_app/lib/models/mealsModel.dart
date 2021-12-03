@@ -1,7 +1,7 @@
 class ItensRefeicaoData{
   ItensRefeicaoData({
     this.receitasNome,
-    this.refeicaokcal
+    this.refeicaokcal,
   });
   String receitasNome;
   double refeicaokcal;

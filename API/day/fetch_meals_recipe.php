@@ -25,18 +25,18 @@
     $refeicao_cod = $obj['refeicao_cod'];
 
     /*$user_id = 1;
-    $date = '2021-12-02';
-    $refeicao_cod = 1*/
+    $date = '2021-12-03';
+    $refeicao_cod = 1;*/
  
     //Fetching the selected record as per ID.
-    $stmt = $mysqli->prepare("SELECT v.receita_id, v.receita_nome, v.receita_kcal FROM v_userdiameal v WHERE
+    $stmt = $mysqli->prepare("SELECT v.receita_id, v.receita_nome, v.receita_kcal, v.categorias_receita FROM v_userdiameal v WHERE
     v.usuario_id = ? AND v.user_dia_data = ? AND v.momento_id = ? ");
     $stmt->bind_param("sss", $user_id, $date, $refeicao_cod);
     
     if($stmt->execute()){
         $stmt->store_result();
         if($stmt->num_rows >= 1){
-            $stmt->bind_result($receita_id, $receita_nome, $receita_kcal);
+            $stmt->bind_result($receita_id, $receita_nome, $receita_kcal, $categorias_receita);
             $stmt->fetch();
 
             $stmt->execute();
@@ -44,7 +44,8 @@
             while ($row = $result->fetch_assoc()) {
                 $refeicao[] = array('receita_id'=>$receita_id,
                      'receita_nome'=>$receita_nome,
-                     'receita_kcal'=>$receita_kcal);
+                     'receita_kcal'=>$receita_kcal,
+                     'refeicao_categorias'=>$categorias_receita);
             }
             $response['error'] = false;
             $response['cod'] = 1;

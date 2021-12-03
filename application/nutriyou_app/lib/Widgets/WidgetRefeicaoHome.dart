@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:nutriyou_app/const.dart';
 import 'package:nutriyou_app/screens/meal_details.dart';
 
 class WidgetRefeicao extends StatefulWidget {
@@ -46,7 +47,7 @@ class _WidgetRefeicaoState extends State<WidgetRefeicao> {
                 ),
               ),
               Container(
-                  constraints: BoxConstraints(minWidth: 100, maxWidth: 190),
+                  constraints: BoxConstraints(minWidth: 100, maxWidth: 180),
                   margin: EdgeInsets.only(left: 15),
                   child: Stack(
                     children: [
@@ -62,16 +63,17 @@ class _WidgetRefeicaoState extends State<WidgetRefeicao> {
                       Spacer(),
                       Flexible(
                           child: Container(
-                          child: Container(
                             margin: EdgeInsets.only(top: 40),
+                            padding: EdgeInsets.only(right: 10),
                             child: RichText(
                               overflow: TextOverflow.ellipsis,
+                              softWrap: false,
                               strutStyle: StrutStyle(fontSize: 12.0),
                               text: TextSpan(
                                   style: TextStyle(color: Colors.black),
                                   text: widget.itensRefeicao),
                             ),
-                          )))
+                          ))
                     ],
                   )),
               Spacer(),
@@ -83,7 +85,7 @@ class _WidgetRefeicaoState extends State<WidgetRefeicao> {
                       width: 75,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          primary: Colors.tealAccent
+                          primary: Colors.tealAccent.shade700
                         ),
                           onPressed: () {
                             setState(() {
@@ -96,29 +98,14 @@ class _WidgetRefeicaoState extends State<WidgetRefeicao> {
                                 corFundoIcon: widget.corFundoIcon,
                               )));
                             });
-                          
-                            /*pushNewScreenWithRouteSettings(
-                              context,
-                              settings: RouteSettings(name: '/viewrefeicao',),
-                              screen: MealDetail(
-                                NomeRefeicao: widget.NomeRefeicao,
-                                Imagem: widget.imagem,
-                                idRefeicao: widget.idRefeicao,
-                                userId: widget.userId,
-                                data: widget.date,
-                                CorFundoIcon: widget.CorFundoIcon,
-                              ),
-                              pageTransitionAnimation:
-                              PageTransitionAnimation.cupertino,
-                            );*/
                           },
                           child: Text(
-                            widget.qtdeCaloriasRefeicao.isEmpty ? "0 kCal" : widget.qtdeCaloriasRefeicao + " kCal",
+                            widget.qtdeCaloriasRefeicao.isEmpty ? "0 kCal" :  transformToNoDecimal(widget.qtdeCaloriasRefeicao) + " kCal",
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 18,
-                              fontWeight: FontWeight.normal,
-                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           )
                         )
@@ -133,4 +120,6 @@ class _WidgetRefeicaoState extends State<WidgetRefeicao> {
     print("refresh done");
   }
 }
+
+
 

@@ -48,7 +48,7 @@ class WidgetMacros extends StatelessWidget {
             padding: EdgeInsets.only(top: 3),
             child: Text(
               // ignore: unrelated_type_equality_checks
-              ml == true ? restante + "ml" : restante + "g" + " restantes",
+              ml == true ? _eNegativo(restante) + "ml " : _eNegativo(restante) + "g " + _estaAcima(restante),
               style: TextStyle(
                 fontSize: 14, 
                 color: Colors.grey.shade700, 
@@ -59,5 +59,22 @@ class WidgetMacros extends StatelessWidget {
         ]
       )
     );
+  }
+}
+
+_estaAcima(String valor){
+  var value = double.parse(valor);
+  if (value.isNegative){
+    return "acima";
+  }else{
+    return "restantes";
+  }
+}
+_eNegativo(String valor){
+  var value = double.parse(valor);
+  if (value.isNegative){
+    return value.abs().toStringAsFixed(0);
+  }else{
+    return value.toStringAsFixed(0);
   }
 }

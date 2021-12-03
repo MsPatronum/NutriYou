@@ -11,7 +11,7 @@
  		
 
  	}else{
- 		$CheckSQL = "SELECT * from receita r where r.receita_nome like '%$search_query%'";
+ 		$CheckSQL = "SELECT r.receita_id, r.receita_nome, r.receita_desc, r.receita_tempo_preparo, r.rn_nivel, r.momento, r.energy_kcal  from view_receita r where r.receita_nome like '%$search_query%'";
 
 	 	$result = $mysqli->query($CheckSQL);
 

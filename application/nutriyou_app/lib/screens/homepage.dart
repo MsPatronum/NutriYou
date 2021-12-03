@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
@@ -177,16 +176,16 @@ _refreshAction() {
                                     child: BodyText(texto: "Você consumiu", tamFonte: 16,),
                                   ),
                                   Container(
-                                    child: BodyText(texto: macrossnapshot.data.data.userDiaKcal.toString(), tamFonte: 26,)
+                                    child: BodyText(texto: macrossnapshot.data.data.userDiaKcal.toStringAsFixed(0), tamFonte: 26,)
                                   ),
                                   Container(
                                     child: BodyText(texto: "de", tamFonte: 16,),
                                   ),
                                   Container(
-                                    child: BodyText(texto: macrossnapshot.data.data.configKcaldia.toString(), tamFonte: 26,)
+                                    child: BodyText(texto: macrossnapshot.data.data.configKcaldia.toStringAsFixed(0), tamFonte: 26,)
                                   ),
                                   Container(
-                                    child: BodyText(texto: "calorias hoje.", tamFonte: 16,),
+                                    child: BodyText(texto: "calorias hoje", tamFonte: 16,),
                                   ),
                                 ],
                               )
@@ -208,7 +207,7 @@ _refreshAction() {
                       builder: (context, mealsnapshot){
                         if(mealsnapshot.hasData){
                           var receitas = mealsnapshot.data.data.receitasNome == null ? "Não há nada aqui." : mealsnapshot.data.data.receitasNome;
-                          var kcal = mealsnapshot.data.data == null ? "0" : mealsnapshot.data.data.refeicaokcal;
+                          var kcal = mealsnapshot.data.data == null ? "0" : mealsnapshot.data.data.refeicaokcal ;
                           return WidgetRefeicao(
                             idRefeicao: 1,
                             corFundoIcon: Colors.teal.shade200,

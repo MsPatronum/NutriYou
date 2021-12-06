@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-var constUrl = '172.17.208.1';
+var constUrl = '192.168.1.124';
 
 link(String page){
   return ('http://'+ constUrl +'/NutriYou/API/'+page);
@@ -15,6 +15,11 @@ getUserId() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   final userId = prefs.getInt('id');
   return userId;
+}
+
+calculateAva(int likes, int dislikes){
+  var fraction = likes / (likes + dislikes);
+  return fraction;
 }
 
 Future getNome() async {

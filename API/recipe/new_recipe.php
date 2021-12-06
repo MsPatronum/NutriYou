@@ -34,10 +34,11 @@
 	$porcoes = '4';
 	$usuario_id = 1;
 	$modo = 1; //1 para privado, 0 para público
+	$status = 0; // 1 para publicado, 0 para em edição
 	//FIM DOS DADOS PARA TESTE
 	
-	$stmt = $mysqli->prepare("INSERT INTO receita (usuario_id, nivel_receita_id, receita_tempo_preparo, receita_porcoes, receita_nome, receita_desc, recita_modo) VALUES (?,?,?,?,?,?,?)");
-	$stmt->bind_param("sssssss", $usuario_id, $nivel, $tempo_preparo, $porcoes, $nome, $descricao, $modo);
+	$stmt = $mysqli->prepare("INSERT INTO receita (usuario_id, nivel_receita_id, receita_tempo_preparo, receita_porcoes, receita_nome, receita_desc, recita_modo, receita_status) VALUES (?,?,?,?,?,?,?,?)");
+	$stmt->bind_param("ssssssss", $usuario_id, $nivel, $tempo_preparo, $porcoes, $nome, $descricao, $modo, $status);
 		
 		//if the recipe is successfully added to the database
 	if($stmt->execute()){
@@ -46,7 +47,7 @@
 		$stmt = $mysqli->prepare("SELECT * FROM receita WHERE usuario_id = ? ORDER BY receita_id desc limit 1");
 		$stmt->bind_param("s",$usuario_id);
 		$stmt->execute();
-		$stmt->bind_result($receita_id, $usuario_id, $nivel, $tempo_preparo, $porcoes, $nome, $descricao, $modo);
+		$stmt->bind_result($receita_id, $usuario_id, $nivel, $tempo_preparo, $porcoes, $nome, $descricao, $modo, $status);
 		$stmt->fetch();
 	
 		$recipe = array(
@@ -57,7 +58,8 @@
 			'nivel' => $nivel,
 			'modo' => $modo,
 			'tempo_preparo' => $tempo_preparo,
-			'porcoes' => $porcoes
+			'porcoes' => $porcoes,
+			'status'=>$status
 		);
 	
 		$stmt->close();

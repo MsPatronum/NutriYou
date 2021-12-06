@@ -14,16 +14,17 @@ include("../config.php");
 	$InsertQuery = "call add_receitanarefeicao($userId, $idRefeicao, $receitaId, '$today', @resultado)";
 
 
-        $executa=$mysqli->query($InsertQuery);
-$error=$mysqli->error;
-
-if(empty($error)){
+    $executa=$mysqli->query($InsertQuery);
 	
-	echo json_encode(['success']);
-}else{
-	echo "Falha";
-	echo $error;
-}
+	$error=$mysqli->error;
+
+	if(empty($error)){
+		
+		echo json_encode(['success']);
+	}else{
+		echo "Falha";
+		echo $error;
+	}
 	
 
 

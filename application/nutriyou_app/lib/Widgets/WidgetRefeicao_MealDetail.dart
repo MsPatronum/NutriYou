@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:nutriyou_app/app_colors.dart';
 import 'package:nutriyou_app/const.dart';
 import 'package:nutriyou_app/screens/recipe_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -157,12 +158,12 @@ class _WidgetReceicao_MealDetailsState extends State<WidgetReceicao_MealDetails>
                 transformAlignment: Alignment.center,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                    color: Colors.teal
+                    color: AppColors.bntFundoVerde
                 ),
                 alignment: Alignment.center,
                 child: IconButton(
                   icon: Icon(Icons.remove_red_eye_rounded),
-                  color: Colors.grey.shade700,
+                  color: AppColors.bntTextoVerde,
                   onPressed: () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) =>  RecipeView(idRefeicao: widget.codReceita,)));
                     },
@@ -175,12 +176,12 @@ class _WidgetReceicao_MealDetailsState extends State<WidgetReceicao_MealDetails>
                   margin: EdgeInsets.only(left: 5, right: 5),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                      color: Colors.pinkAccent
+                      color: AppColors.lightPink
                   ),
                   alignment: Alignment.center,
                   child: IconButton(
                     icon: Icon(Icons.delete_rounded),
-                    color: Colors.pink.shade100,
+                    color: Colors.pink,
                     onPressed: (){
                         setState(() {
                             removeOfMeal(widget.codRefeicao, widget.codReceita, widget.udmId);

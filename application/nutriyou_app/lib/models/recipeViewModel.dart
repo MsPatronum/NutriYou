@@ -85,6 +85,7 @@ class InfoReceita {
         this.fiberUnit,
         this.energyKcal,
         this.energyKj,
+        this.aval,
     });
 
     int receitaId;
@@ -106,6 +107,7 @@ class InfoReceita {
     String fiberUnit;
     double energyKcal;
     double energyKj;
+    double aval;
 
     factory InfoReceita.fromJson(Map<String, dynamic> json) => InfoReceita(
         receitaId: json["receita_id"] == null ? null : json["receita_id"],
@@ -127,6 +129,7 @@ class InfoReceita {
         fiberUnit: json["fiber_unit"] == null ? null : json["fiber_unit"],
         energyKcal: json["energy_kcal"] == null ? null : json["energy_kcal"].toDouble(),
         energyKj: json["energy_kj"] == null ? null : json["energy_kj"].toDouble(),
+        aval: json["aval"] == null ? 0 : json["aval"].toDouble(),
     );
 
     Map<String, dynamic> toJson() => {
@@ -149,6 +152,7 @@ class InfoReceita {
         "fiber_unit": fiberUnit == null ? null : fiberUnit,
         "energy_kcal": energyKcal == null ? null : energyKcal,
         "energy_kj": energyKj == null ? null : energyKj,
+        "aval" : aval == null ? 0 : aval,
     };
 }
 

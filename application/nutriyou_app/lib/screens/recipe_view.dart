@@ -5,10 +5,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
+import 'package:nutriyou_app/app_colors.dart';
 import 'package:nutriyou_app/const.dart';
 import 'package:http/http.dart' as http;
 import 'package:nutriyou_app/models/recipeViewModel.dart';
-//import 'package:nutri_app/Widgets/WidgetStarRating.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class RecipeView extends StatefulWidget {
   const RecipeView({Key key, this.idRefeicao, this.recipeView}) : super(key: key);
@@ -44,6 +47,24 @@ class _RecipeViewState extends State<RecipeView> {
     }
   }
 
+  /*Future likeDislikeHandler(String option, int receita_id) async {
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('id');
+    var data = {'receita_id': receita_id, 'option': option, 'userId': userId};
+
+    var response = await http.post(Uri.parse(link('recipe/likeDislike.php')), body: json.encode(data));
+    if (response.statusCode == 200) {
+
+
+    }else {
+      throw Exception('Failed to load data from Server.');
+    }
+    
+
+
+  }*/
+
   @override
   Widget build(BuildContext context) {
 
@@ -67,38 +88,69 @@ class _RecipeViewState extends State<RecipeView> {
             )
 
         ),
-        actions: [
-          Container(
-            margin: EdgeInsets.only(right: 15),
-            child: IconButton(
-              icon: Icon(
-                like ? (){dislike = false; return Icons.thumb_up;}() : Icons.thumb_up_outlined,
-                size: 30,
-                color: Colors.teal,
+        /*actions: [
+          FutureBuilder( future: likeDislikeHandler('like', 1),
+          builder: (context, snapshot){
+            return Container(
+                margin: EdgeInsets.only(right: 15),
+                child: IconButton(
+                  icon: Icon(
+                    like ? (){dislike = false; return Icons.thumb_up;}() : Icons.thumb_up_outlined,
+                    size: 30,
+                    color: Colors.teal,
+                  ),
+                  onPressed: (){
+                    setState(() {
+                      like = !like;
+                      if (dislike == true){
+                        dislike = !dislike;
+                      }
+                    });
+                  },
+                ),
+              );
+
+          }),
+          Row( 
+            children: [
+              Container(
+                margin: EdgeInsets.only(right: 15),
+                child: IconButton(
+                  icon: Icon(
+                    like ? (){dislike = false; return Icons.thumb_up;}() : Icons.thumb_up_outlined,
+                    size: 30,
+                    color: Colors.teal,
+                  ),
+                  onPressed: (){
+                    setState(() {
+                      like = !like;
+                      if (dislike == true){
+                        dislike = !dislike;
+                      }
+                    });
+                  },
+                ),
               ),
-              onPressed: (){
-                setState(() {
-                  like = !like;
-                });
-              },
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.only(right: 15),
-            child: IconButton(
-              icon: Icon(
-                dislike ? (){like = false; return Icons.thumb_down;}() : Icons.thumb_down_outlined,
-                size: 30,
-                color: Colors.teal,
-              ),
-              onPressed: (){
-                setState(() {
-                  dislike = !dislike;
-                });
-              },
-            ),
-          )
-        ],
+              Container(
+                margin: EdgeInsets.only(right: 15),
+                child: IconButton(
+                  icon: Icon(
+                    dislike ? (){like = false; return Icons.thumb_down;}() : Icons.thumb_down_outlined,
+                    size: 30,
+                    color: Colors.teal,
+                  ),
+                  onPressed: (){
+                    setState(() {
+                      dislike = !dislike;
+                      if (like == true){
+                        like = !like;
+                      }
+                    });
+                  },
+                ),
+              )
+          ],)
+        ],*/
       ),
       body: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
@@ -130,7 +182,7 @@ class _RecipeViewState extends State<RecipeView> {
                         ),
                         IntrinsicHeight(
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               Column(
                                 children: [
@@ -162,7 +214,7 @@ class _RecipeViewState extends State<RecipeView> {
                                 Text(_startTime.hour.toString() + "h " + _startTime.minute.toString() + "m"),
                                 ],
                               ),
-                              VerticalDivider(
+                              /*VerticalDivider(
                                 color: Colors.teal,
                                 thickness: 2,
                               ),
@@ -171,18 +223,23 @@ class _RecipeViewState extends State<RecipeView> {
                                   Text(
                                     "Avaliação",
                                     style: TextStyle(
-                                    color: Colors.grey.shade700,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15
+                                      color: Colors.grey.shade700,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15
+                                    ),
                                   ),
-                                ),
-                                    /*StarDisplayWidget(
-                                      value: 4,
-                                      filledStar: Icon(Icons.star_rounded, color: AppColors.defaultGreen, size: 20,),
-                                      unfilledStar: Icon(Icons.star_border_rounded, color: AppColors.defaultGreen, size: 20,),
-                                    )*/
+                                  RatingBarIndicator(
+                                    rating: infoReceita.aval,
+                                    itemBuilder: (context, index) => Icon(
+                                        Icons.star,
+                                        color: AppColors.defaultGreen,
+                                    ),
+                                    itemCount: 5,
+                                    itemSize: 18.0,
+                                    direction: Axis.horizontal,
+                                  ),
                                 ],
-                              )
+                              )*/
                             ],
                           ),
                         )
@@ -394,6 +451,7 @@ class _RecipeViewState extends State<RecipeView> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
+                  color: Colors.white
                 ),
               ),
 
@@ -402,7 +460,7 @@ class _RecipeViewState extends State<RecipeView> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade700,
+                  color: Colors.teal.shade50,
                 ),
               ),
 
@@ -433,7 +491,7 @@ buildTextStep(String text){
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w900,
-                color: Colors.black,
+                color: Colors.white,
               ),
             ),
           )
@@ -460,7 +518,7 @@ buildTextIngredient(String qtd, String medida, String nome){
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: Colors.white,
               ),
             ),
           ),

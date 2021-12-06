@@ -35,7 +35,7 @@
             v.lipid_qtd, v.lipid_unit,
             v.carbohydrate_qtd, v.carbohydrate_unit, 
             v.fiber_qtd, v.fiber_unit,
-            v.energy_kcal, v.energy_kj 
+            v.energy_kcal, v.energy_kj, v.ra_likes, v.ra_dislikes
         FROM 
             view_receita v 
         WHERE
@@ -50,9 +50,17 @@
         if($receita_detalhes->num_rows == 1){
             //se o número de linhas for 1, então guardar os resultados em variáveis
             $receita_detalhes->bind_result($receita_id,$receita_nome,$receita_desc,$receita_porcoes,$receita_tempo_preparo,$rn_nivel,$momento,$humidity_qtd,$humidity_unit,$protein_qtd,$protein_unit,
-                               $lipid_qtd,$lipid_unit,$carbohydrate_qtd,$carbohydrate_unit,$fiber_qtd,$fiber_unit,$energy_kcal,$energy_kj);
+                               $lipid_qtd,$lipid_unit,$carbohydrate_qtd,$carbohydrate_unit,$fiber_qtd,$fiber_unit,$energy_kcal,$energy_kj, $ra_likes, $ra_dislikes);
             
             $receita_detalhes->fetch();
+
+            if($ra_likes == 0 || $ra_dislikes == 0){
+                $aval = 0;
+            }else{
+                $aval = $ra_likes / ($ra_likes/$ra_dislikes);    
+            }
+            
+
             //adicionando as informações da receita em um array
             $info_receita = array(
                 'receita_id'=>$receita_id,
@@ -73,7 +81,8 @@
                 'fiber_qtd'=>$fiber_qtd,
                 'fiber_unit'=>$fiber_unit,
                 'energy_kcal'=>$energy_kcal,
-                'energy_kj'=>$energy_kj
+                'energy_kj'=>$energy_kj,
+                'aval'=>$aval
             );
 
             //preparando query dos passos

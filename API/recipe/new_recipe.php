@@ -3,10 +3,10 @@
 	
 	include(conexao);
 	
-	$keys=array('nome', 'descricao', 'nivel', 'tempo_preparo', 'porcoes', 'usuario_id', 'modo');
+	$keys=array('usuario_id','nivel_receita_id','receita_tempo_preparo','receita_porcoes','receita_nome','receita_desc','receita_modo','receita_status');
 	
 	//
-	/*for ($i = 0; $i < count($keys); $i++){
+	for ($i = 0; $i < count($keys); $i++){
 		if(!isset($_POST[$keys[$i]]))
 		 {
 			  $response['error'] = true;
@@ -17,24 +17,25 @@
 	
 	}
 	
-	$nome = $_POST['nome'];
-	$descricao = $_POST['descricao'];
-	$nivel = $_POST['nivel'];
-	$tempo_preparo = $_POST['tempo_preparo'];
-	$porcoes = $_POST['porcoes'];
+	$nome = $_POST['receita_nome'];
+	$descricao = $_POST['receita_desc'];
+	$nivel = $_POST['nivel_receita_id'];
+	$tempo_preparo = $_POST['receita_tempo_preparo'];
+	$porcoes = $_POST['receita_porcoes'];
 	$usuario_id = $_POST['usuario_id'];
-	$modo = $_POST['modo'];
-	*/
+	$modo = $_POST['recita_modo'];
+	$status = $_POST['receita_status'];
+	
 	
 	// DADOS PARA TESTE
-	$nome = 'Arroz na panela';
+	/*$nome = 'Arroz na panela';
 	$descricao = 'Receita fácil de arroz na panela';
 	$nivel = 1;
 	$tempo_preparo = '00:40';
 	$porcoes = '4';
 	$usuario_id = 1;
 	$modo = 1; //1 para privado, 0 para público
-	$status = 0; // 1 para publicado, 0 para em edição
+	$status = 0; // 1 para publicado, 0 para em edição*/
 	//FIM DOS DADOS PARA TESTE
 	
 	$stmt = $mysqli->prepare("INSERT INTO receita (usuario_id, nivel_receita_id, receita_tempo_preparo, receita_porcoes, receita_nome, receita_desc, recita_modo, receita_status) VALUES (?,?,?,?,?,?,?,?)");

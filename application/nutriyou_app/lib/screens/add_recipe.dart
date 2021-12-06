@@ -1,5 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:nutriyou_app/app_colors.dart';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:nutriyou_app/const.dart';
+import 'package:nutriyou_app/models/recipeAddModel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddRecipe extends StatefulWidget {
   //const AddRecipe({ Key? key }) : super(key: key);
@@ -9,10 +16,57 @@ class AddRecipe extends StatefulWidget {
 }
 
 class _AddRecipeState extends State<AddRecipe> {
- 
+  final _formKey = GlobalKey<FormState>();
   var _recipeNameController = TextEditingController();
   var _recipeDescController = TextEditingController();
   int _nivel = 0;
+  var _recipeHourController = TextEditingController();
+  var _recipeMinController = TextEditingController();
+  var _recipePortionController = TextEditingController();
+  int _privacidade;
+
+  Future<RecipeAdd> addRecipe() async {
+    
+    setState(() {
+      //visible = true ; 
+    });
+    
+    String recipeName = _recipeNameController.text;
+    String recipeDesc = _recipeDescController.text;
+    int nivel = _nivel;
+    String recipeHour = _recipeHourController.text;
+    String recipeMin = _recipeMinController.text;
+    String recipePortion =_recipePortionController.text;
+    int privacidade = _privacidade;
+
+    NumberFormat formatter = NumberFormat("00");
+
+    var tempoPreparo = formatter.format(int.parse(recipeHour))+":"+formatter.format(int.parse(recipeMin))+":"+"00";
+
+    var url = link("recipe/new_recipe.php");
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('id');
+
+    var data = {
+      'usuario_id': userId, 
+      'nivel_receita_id': nivel, 
+      'receita_tempo_preparo': tempoPreparo,
+      'receita_porcoes': recipePortion,
+      'receita_nome': recipeName,
+      'receita_desc': recipeDesc,
+      'receita_modo': privacidade,
+      'receita_status': '0'};
+
+    var response = await  http.post(url, body: json.encode(data));
+    
+    print(data);
+    print(response.body);
+
+
+
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -43,92 +97,200 @@ class _AddRecipeState extends State<AddRecipe> {
           physics: BouncingScrollPhysics(),
           child: FutureBuilder(
             builder: (context, snapshot){
-              return (
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    customTextFormField("Nome da receita", "Adicione o nome da receita", TextInputType.text, _recipeNameController),
-                    customTextFormField("Descrição da receita", "Breve descrição da receita", TextInputType.text, _recipeDescController),
-                    Container(
-                      margin: EdgeInsets.only(top: 15),
-                      child: InputDecorator(
-                        decoration: InputDecoration(
-                          labelStyle: TextStyle(color: Colors.teal.shade700),
-                          labelText: 'Qual o seu sexo?',
-                          enabledBorder: InputBorder.none
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children:[
-                            _customRadioButton(1, _nivel, "Fácil"),
-                            Row(
-                              children: [
-                                SizedBox(
-                                  width: 10,
-                                  child: Radio(
-                                  value: 2,
-                                  groupValue: _nivel,
-                                  activeColor: Colors.teal,
-                                  onChanged: (value) {
-                                    //value may be true or false
-                                    setState(() {_nivel = value;});
-                                  },
+              return Form(
+                key: _formKey,
+                child: (
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      customTextFormField("Nome da receita", "Adicione o nome da receita", TextInputType.text, _recipeNameController, 40),
+                      customTextFormField("Descrição da receita", "Breve descrição da receita", TextInputType.text, _recipeDescController, 100),
+                      Container(
+                        margin: EdgeInsets.only(top: 15),
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.fromLTRB(10.0, 15.0, 20.0, 15.0),
+                            labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 19),
+                            labelText: 'Dificuldade',
+                            enabledBorder: InputBorder.none
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children:[
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    width: 10,
+                                    child: Radio(
+                                    value: 1,
+                                    groupValue: _nivel,
+                                    activeColor: Colors.teal,
+                                    onChanged: (value) {
+                                      //value may be true or false
+                                      setState(() {_nivel = value;});
+                                    },
+                                    ),
                                   ),
-                                ),
-                                SizedBox(width: 10.0),
-                                Text("Médio"),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                SizedBox(
-                                  width: 10,
-                                  child: Radio(
-                                  value: 3,
-                                  groupValue: _nivel,
-                                  activeColor: Colors.teal,
-                                  onChanged: (value) {
-                                    //value may be true or false
-                                    setState(() {_nivel = value;});
-                                  },
+                                  SizedBox(width: 10.0),
+                                  Text("Fácil"),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    width: 10,
+                                    child: Radio(
+                                    value: 2,
+                                    groupValue: _nivel,
+                                    activeColor: Colors.teal,
+                                    onChanged: (value) {
+                                      //value may be true or false
+                                      setState(() {_nivel = value;});
+                                    },
+                                    ),
                                   ),
-                                ),
-                                SizedBox(width: 10.0),
-                                Text("Difícil"),
-                              ],
-                            ),
-                          ]
+                                  SizedBox(width: 10.0),
+                                  Text("Médio"),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    width: 10,
+                                    child: Radio(
+                                    value: 3,
+                                    groupValue: _nivel,
+                                    activeColor: Colors.teal,
+                                    onChanged: (value) {
+                                      //value may be true or false
+                                      setState(() {_nivel = value;});
+                                    },
+                                    ),
+                                  ),
+                                  SizedBox(width: 10.0),
+                                  Text("Difícil"),
+                                ],
+                              ),
+                            ]
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                )
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(10.0, 15.0, 20.0, 0.0),
+                        child: Text(
+                          "Tempo de preparo", 
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 14
+                          ),
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children:[
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width *0.40,
+                            child: customTextFormField("Horas", "", TextInputType.number, _recipeHourController, 2),
+                          ),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width *0.40,
+                            child: customTextFormField("Minutos", "", TextInputType.number, _recipeMinController, 2),
+                          ),
+                        ]
+                      ),
+
+                      customTextFormField("Porções", "", TextInputType.number, _recipePortionController, 2),
+
+                      Container(
+                        margin: EdgeInsets.only(top: 15),
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.fromLTRB(10.0, 15.0, 20.0, 15.0),
+                            labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 19),
+                            labelText: 'Privacidade',
+                            enabledBorder: InputBorder.none
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children:[
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    width: 10,
+                                    child: Radio(
+                                    value: 0,
+                                    groupValue: _privacidade,
+                                    activeColor: Colors.teal,
+                                    onChanged: (value) {
+                                      //value may be true or false
+                                      setState(() {_privacidade = value;});
+                                    },
+                                    ),
+                                  ),
+                                  SizedBox(width: 10.0),
+                                  Text("Receita privada"),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    width: 10,
+                                    child: Radio(
+                                    value: 1,
+                                    groupValue: _privacidade,
+                                    activeColor: Colors.teal,
+                                    onChanged: (value) {
+                                      //value may be true or false
+                                      setState(() {_privacidade = value;});
+                                    },
+                                    ),
+                                  ),
+                                  SizedBox(width: 10.0),
+                                  Text("Receita pública"),
+                                ],
+                              ),
+                            ]
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 80,
+                        width: double.infinity,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16.0),
+                          child: ElevatedButton(
+                            style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.teal.shade300), 
+                            shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+                            padding: MaterialStateProperty.all(EdgeInsets.all(12))),
+                            onPressed: () {
+                              addRecipe();
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children:[
+                                Text(
+                                  'Próximo', 
+                                  style: TextStyle(
+                                    color: Colors.white
+                                  )
+                                ),
+                                Icon(
+                                  Icons.arrow_forward_outlined, 
+                                  color: Colors.white,
+                                )
+                              ]
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                ),
               );
             }
         ),),
       ),
-    );
-  }
-
-  Row _customRadioButton(r_value, _controller, String descricao) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 10,
-          child: Radio(
-            value: r_value,
-            groupValue: _controller,
-            activeColor: Colors.teal,
-            onChanged: (value) {
-              //value may be true or false
-              setState(() {_controller = value;});
-            },
-          ),
-        ),
-        SizedBox(width: 10.0),
-        Text(descricao),
-      ],
     );
   }
 }
@@ -158,14 +320,23 @@ buildTitleText(String text){
   );
 }
 
-Widget customTextFormField(label, hint, inputtype, controller){
+Widget customTextFormField(label, hint, inputtype, controller, maxlength){
   return TextFormField(
     keyboardType: inputtype,
     autofocus: false,
     controller: controller,
+    autovalidateMode: AutovalidateMode.onUserInteraction,
+    validator: (String value){
+      if(value.isEmpty){
+        return "Insira dados";
+      }
+        return null;
+    },
+    maxLength: maxlength,
+    maxLengthEnforcement: MaxLengthEnforcement.enforced,
     decoration: InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(color: Colors.teal.shade700,fontSize: 15),
+      labelStyle: TextStyle(color: Colors.grey.shade600,fontSize: 15),
       hintText: hint,
       contentPadding: EdgeInsets.fromLTRB(10.0, 15.0, 20.0, 15.0),
       border: UnderlineInputBorder(),

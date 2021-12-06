@@ -1,14 +1,13 @@
 -- phpMyAdmin SQL Dump
--- version 4.8.5
+-- version 5.1.0
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: 14-Jun-2021 às 21:48
--- Versão do servidor: 10.1.38-MariaDB
--- versão do PHP: 7.3.3
+-- Tempo de geração: 06-Dez-2021 às 11:50
+-- Versão do servidor: 10.4.18-MariaDB
+-- versão do PHP: 8.0.3
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -19,8 +18,338 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `tcc_database`
+-- Banco de dados: `tcc_database`
 --
+CREATE DATABASE IF NOT EXISTS `tcc_database` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `tcc_database`;
+
+DELIMITER $$
+--
+-- Procedimentos
+--
+DROP PROCEDURE IF EXISTS `add_receitanarefeicao`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `add_receitanarefeicao` (IN `user_id` INT, `cod_refeicao` INT, `cod_receita` INT, `todaydate` DATE, OUT `resposta` VARCHAR(40))  BEGIN
+	declare userdia_id, udmacros_id, udmomento_id int; 
+    declare momento_kcal, kcal, rec_kcal, new_kcal, prot, rec_prot, carb, rec_carb, gord, rec_gord, fibra, rec_fibra float;
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+		BEGIN
+            ROLLBACK;
+            RESIGNAL;
+		END;
+	SET resposta = 'ERRO';
+	START TRANSACTION;
+	
+    -- get id do user_dia, macros e momento e kcal
+    set userdia_id = (select ud.user_dia_id from user_dia ud where ud.usuario_id = user_id and user_dia_data = todaydate);
+    set udmacros_id = (select udm.user_dia_macros_id from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    
+                        
+	-- get macros
+	set kcal = (select udm.udm_kcal from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    set rec_kcal = (select r.energy_kcal from receita_val_nutricional r where r.receita_id = cod_receita);
+    set prot = (select udm.udm_prot from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    set rec_prot = (select r.protein_qtd from receita_val_nutricional r where r.receita_id = cod_receita);
+    set carb = (select udm.udm_carb from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    set rec_carb = (select r.carbohydrate_qtd from receita_val_nutricional r where r.receita_id = cod_receita);
+    set gord = (select udm.udm_gord from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    set rec_gord = (select r.lipid_qtd from receita_val_nutricional r where r.receita_id = cod_receita);
+    set fibra = (select udm.udm_fibra from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    set rec_fibra = (select r.fiber_qtd from receita_val_nutricional r where r.receita_id = cod_receita);
+    
+    -- calcular macros
+    set kcal = kcal + rec_kcal;
+    set prot = prot + rec_prot;
+    set carb = carb + rec_carb;
+    set gord = gord + rec_gord;
+    set fibra = fibra + rec_fibra;
+    
+    -- vendo se já existe momento
+    if 
+		(select udo.user_dia_momento_id from user_dia_momento udo where udo.user_dia_id = userdia_id and udo.momento_id = cod_refeicao) is not null
+    then
+		set udmomento_id = (select udo.user_dia_momento_id from user_dia_momento udo where udo.user_dia_id = userdia_id and udo.momento_id = cod_refeicao);
+        set momento_kcal = (select udo.momento_kcal from user_dia_momento udo where udo.user_dia_momento_id = udmomento_id);
+        set momento_kcal = momento_kcal + rec_kcal;
+        update user_dia_momento udo set udo.momento_kcal = momento_kcal where udo.user_dia_momento_id = udmomento_id;
+	else 
+		insert into user_dia_momento (user_dia_id, momento_id, momento_kcal) value (userdia_id, cod_refeicao, rec_kcal); 
+		set udmomento_id = (select udo.user_dia_momento_id from user_dia_momento udo where udo.user_dia_id = userdia_id and udo.momento_id = cod_refeicao);
+	end if;  
+    
+    
+    -- adicionar receita na refeição
+    insert into udm_receita(user_dia_momento_id, receita_id) value (udmomento_id, cod_receita);
+  -- adicionar macros da receita no user_dia_macros
+	UPDATE user_dia_macros 	SET udm_kcal = kcal, udm_prot = prot, udm_carb = carb, udm_gord = gord,	udm_fibra = fibra WHERE user_dia_id = userdia_id;
+	  
+    SET resposta = 'OK';
+	COMMIT;
+
+END$$
+
+DROP PROCEDURE IF EXISTS `create_user`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `create_user` (IN `nome` VARCHAR(45), IN `sobrenome` VARCHAR(45), IN `email` VARCHAR(45), IN `senha` VARCHAR(45), IN `tipo` BOOL, IN `token` VARCHAR(12), IN `is_active` BOOL, IN `peso` FLOAT, IN `altura` FLOAT, IN `sexo` CHAR(1), IN `data_nasc` DATE, OUT `resposta` TEXT)  BEGIN
+	declare kcal_total int;
+	declare carb double;
+	declare gord double;
+	declare prot double;
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+		BEGIN
+            ROLLBACK;
+            RESIGNAL;
+		END;
+	SET resposta = 'ERRO';
+	START TRANSACTION;
+    -- INSERINDO O USUÁRIO
+	INSERT INTO usuario ( usuario_nome, usuario_sobrenome, usuario_email, usuario_senha, usuario_tipo, usuario_token) VALUES (nome,sobrenome,email,senha,tipo,token);
+	SET @last_id = LAST_INSERT_ID();
+    -- INSERINDO INFORMAÇÕES DO USUÁRIO
+	INSERT INTO usuario_configs_ref (usuario_id, ucr_datanasc, ucr_peso, ucr_sexo, ucr_is_active, ucr_altura) 
+		VALUES( @last_id, data_nasc, peso, sexo, is_active, altura );
+	-- INSERINDO O PRIMEIRO REGISTRO DE PESO NA TABELA DE HISTÓRICO DE PESO
+	INSERT INTO user_peso_historico values (null, @last_id, curdate(), peso);  
+    -- INSERINDO A CONFIGURAÇÃO PADRÃO DA TABELA MOOD
+    INSERT INTO usuario_configs_mood (usuario_id) VALUES (@last_id);
+    
+     -- INSERINDO AS CONFIGURAÇÕES PADRÃO DE MACRONUTRIENTES
+    SET kcal_total = new_kcaltotal(peso, data_nasc, sexo);
+    set carb =  divide_macros(65,kcal_total, 'carb');
+    set gord =  divide_macros(22.5,kcal_total, 'gord');
+    set prot =  divide_macros(12.5,kcal_total, 'prot');
+    INSERT INTO usuario_configs_macros (usuario_id, ucm_kcal, ucm_carb, ucm_prot, ucm_gord) values (@last_id, kcal_total, carb, prot, gord); 
+	SET resposta = 'OK';
+	COMMIT;
+end$$
+
+DROP PROCEDURE IF EXISTS `new_day`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `new_day` (IN `user_id` INT, IN `user_data` DATE, OUT `resposta` TEXT)  BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+		BEGIN
+            ROLLBACK;
+            RESIGNAL;
+		END;
+	SET resposta = 'ERRO';
+	START TRANSACTION;
+	INSERT INTO user_dia (usuario_id, user_dia_data) values (user_id, user_data);
+		SET @last_id = LAST_INSERT_ID();
+	INSERT INTO user_dia_macros (user_dia_id, udc_kcal, udc_prot, udc_carb, udc_gord) 
+		SELECT @last_id, ucm.ucm_kcal, ucm.ucm_prot, ucm.ucm_carb, ucm.ucm_gord FROM usuario_configs_macros ucm where ucm.usuario_id = user_id;
+	SET resposta = 'OK';
+	COMMIT;
+end$$
+
+DROP PROCEDURE IF EXISTS `remove_receitadarefeica`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `remove_receitadarefeica` (IN `user_id` INT, `cod_refeicao` INT, `cod_receita` INT, `todaydate` DATE, OUT `resposta` VARCHAR(40))  BEGIN
+
+	declare userdia_id, udmacros_id, udmomento_id int; 
+    declare momento_kcal, kcal, rec_kcal, new_kcal, prot, rec_prot, carb, rec_carb, gord, rec_gord, fibra, rec_fibra float;
+    
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+		BEGIN
+            ROLLBACK;
+            RESIGNAL;
+		END;
+	SET resposta = 'ERRO';
+	START TRANSACTION;
+	
+    -- get id do user_dia, macros e momento e kcal
+    set userdia_id = (select ud.user_dia_id from user_dia ud where ud.usuario_id = user_id and user_dia_data = todaydate);
+    set udmacros_id = (select udm.user_dia_macros_id from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    
+                        
+	-- get macros
+	set kcal = (select udm.udm_kcal from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    set rec_kcal = (select r.energy_kcal from receita_val_nutricional r where r.receita_id = cod_receita);
+    set prot = (select udm.udm_prot from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    set rec_prot = (select r.protein_qtd from receita_val_nutricional r where r.receita_id = cod_receita);
+    set carb = (select udm.udm_carb from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    set rec_carb = (select r.carbohydrate_qtd from receita_val_nutricional r where r.receita_id = cod_receita);
+    set gord = (select udm.udm_gord from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    set rec_gord = (select r.lipid_qtd from receita_val_nutricional r where r.receita_id = cod_receita);
+    set fibra = (select udm.udm_fibra from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    set rec_fibra = (select r.fiber_qtd from receita_val_nutricional r where r.receita_id = cod_receita);
+    
+    -- calcular macros
+    set kcal = kcal - rec_kcal;
+    set prot = prot - rec_prot;
+    set carb = carb - rec_carb;
+    set gord = gord - rec_gord;
+    set fibra = fibra - rec_fibra;
+    
+    -- vendo se já existe momento
+    if 
+		(select udo.user_dia_momento_id from user_dia_momento udo where udo.user_dia_id = userdia_id and udo.momento_id = cod_refeicao) is not null
+    then
+		set udmomento_id = (select udo.user_dia_momento_id from user_dia_momento udo where udo.user_dia_id = userdia_id and udo.momento_id = cod_refeicao);
+        set momento_kcal = (select udo.momento_kcal from user_dia_momento udo where udo.user_dia_momento_id = udmomento_id);
+        set momento_kcal = momento_kcal - rec_kcal;
+        update user_dia_momento udo set udo.momento_kcal = momento_kcal where udo.user_dia_momento_id = udmomento_id;
+	else 
+		insert into user_dia_momento (user_dia_id, momento_id, momento_kcal) value (userdia_id, cod_refeicao, rec_kcal); 
+		set udmomento_id = (select udo.user_dia_momento_id from user_dia_momento udo where udo.user_dia_id = userdia_id and udo.momento_id = cod_refeicao);
+	end if;  
+    
+    
+    -- remover receita da refeição
+    delete from udm_receita where user_dia_momento = udmomento_id and receita_id = cod_receita;
+	-- remover macros da receita no user_dia_macros
+	UPDATE user_dia_macros 	SET udm_kcal = kcal, udm_prot = prot, udm_carb = carb, udm_gord = gord,	udm_fibra = fibra WHERE user_dia_id = userdia_id;
+	  
+    SET resposta = 'OK';
+	COMMIT;
+    
+
+END$$
+
+DROP PROCEDURE IF EXISTS `remove_receitadarefeicao`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `remove_receitadarefeicao` (IN `user_id` INT, `cod_refeicao` INT, `udmId` INT, `cod_receita` INT, `todaydate` DATE, OUT `resposta` VARCHAR(40))  BEGIN
+
+	declare userdia_id, udmacros_id, udmomento_id int; 
+    declare momento_kcal, kcal, rec_kcal, new_kcal, prot, rec_prot, carb, rec_carb, gord, rec_gord, fibra, rec_fibra float;
+    
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+		BEGIN
+            ROLLBACK;
+            RESIGNAL;
+		END;
+	SET resposta = 'ERRO';
+	START TRANSACTION;
+	
+    -- get id do user_dia, macros e momento e kcal
+    set userdia_id = (select ud.user_dia_id from user_dia ud where ud.usuario_id = user_id and user_dia_data = todaydate);
+    set udmacros_id = (select udm.user_dia_macros_id from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    
+                        
+	-- get macros
+	set kcal = (select udm.udm_kcal from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    set rec_kcal = (select r.energy_kcal from receita_val_nutricional r where r.receita_id = cod_receita);
+    set prot = (select udm.udm_prot from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    set rec_prot = (select r.protein_qtd from receita_val_nutricional r where r.receita_id = cod_receita);
+    set carb = (select udm.udm_carb from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    set rec_carb = (select r.carbohydrate_qtd from receita_val_nutricional r where r.receita_id = cod_receita);
+    set gord = (select udm.udm_gord from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    set rec_gord = (select r.lipid_qtd from receita_val_nutricional r where r.receita_id = cod_receita);
+    set fibra = (select udm.udm_fibra from user_dia_macros udm where udm.user_dia_id = userdia_id);
+    set rec_fibra = (select r.fiber_qtd from receita_val_nutricional r where r.receita_id = cod_receita);
+    
+    -- calcular macros
+    set kcal = kcal - rec_kcal;
+    set prot = prot - rec_prot;
+    set carb = carb - rec_carb;
+    set gord = gord - rec_gord;
+    set fibra = fibra - rec_fibra;
+    
+    -- vendo se já existe momento
+    if 
+		(select udo.user_dia_momento_id from user_dia_momento udo where udo.user_dia_id = userdia_id and udo.momento_id = cod_refeicao) is not null
+    then
+		set udmomento_id = (select udo.user_dia_momento_id from user_dia_momento udo where udo.user_dia_id = userdia_id and udo.momento_id = cod_refeicao);
+        set momento_kcal = (select udo.momento_kcal from user_dia_momento udo where udo.user_dia_momento_id = udmomento_id);
+        set momento_kcal = momento_kcal - rec_kcal;
+        update user_dia_momento udo set udo.momento_kcal = momento_kcal where udo.user_dia_momento_id = udmomento_id;
+	else 
+		insert into user_dia_momento (user_dia_id, momento_id, momento_kcal) value (userdia_id, cod_refeicao, rec_kcal); 
+		set udmomento_id = (select udo.user_dia_momento_id from user_dia_momento udo where udo.user_dia_id = userdia_id and udo.momento_id = cod_refeicao);
+	end if;  
+    
+    
+    -- remover receita da refeição
+    delete from udm_receita where user_dia_momento_id = udmomento_id and receita_id = cod_receita and udm_receita_id = udmId;
+	-- remover macros da receita no user_dia_macros
+	UPDATE user_dia_macros 	SET udm_kcal = kcal, udm_prot = prot, udm_carb = carb, udm_gord = gord,	udm_fibra = fibra WHERE user_dia_id = userdia_id;
+	  
+    SET resposta = 'OK';
+	COMMIT;
+    
+
+END$$
+
+DROP PROCEDURE IF EXISTS `set_mood`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `set_mood` (IN `func` TEXT, `user_id` INT, `user_dia` DATE, `e_feliz` BOOL, `e_sensivel` BOOL, `e_triste` BOOL, `e_raiva` BOOL, `s_0a3` BOOL, `s_3a6` BOOL, `s_6a9` BOOL, `s_9oumais` BOOL, `v_ativo` BOOL, `v_alta` BOOL, `v_baixa` BOOL, `v_exaustao` BOOL, `b_otimo` BOOL, `b_normal` BOOL, `b_prisaoventre` BOOL, `b_diarreia` BOOL, `d_doce` BOOL, `d_salgado` BOOL, `d_carboidratos` BOOL, `d_otimo` BOOL, `d_inchaco` BOOL, `d_enjoo` BOOL, `d_comgases` BOOL, `p_boa` BOOL, `p_oleosa` BOOL, `p_seca` BOOL, `p_acne` BOOL, `m_focado` BOOL, `m_tranquilidade` BOOL, `m_distracao` BOOL, `m_estresse` BOOL, `m_motivado` BOOL, `m_desaminado` BOOL, `m_produtivo` BOOL, `m_preguica` BOOL, `p_kg` FLOAT, `e_corrida` BOOL, `e_academia` BOOL, `e_bicicleta` BOOL, `e_natacao` BOOL, `f_bebidas` BOOL, `f_fumo` BOOL, `f_ressaca` BOOL, `f_outrassubs` BOOL)  BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+		BEGIN
+            ROLLBACK;
+            RESIGNAL;
+		END;
+	START TRANSACTION;
+		     
+        -- SE FUNÇÃO FOR IGUAL À INSERT, INSERIR NA BASE DE DADOS
+        IF (func = "INSERT") then
+        SET @dia_id = (SELECT user_dia_id FROM user_dia WHERE usuario_id = user_id AND  user_dia_data = user_dia);
+		INSERT INTO user_dia_mood (user_dia_id,  emocoes_feliz,  emocoes_sensivel,  emocoes_triste,  emocoes_raiva,  sono_0a3,  sono_3a6,  sono_6a9,  sono_9oumais,  vitalidade_ativo,  vitalidade_alta,  vitalidade_baixa,  vitalidade_exaustao,  banheiro_otimo,  banheiro_normal,  banheiro_prisaoventre,  banheiro_diarreia,  desejo_doce,  desejo_salgado,  desejo_carboidratos,  digestao_otimo,  digestao_inchaco,  digestao_enjoo,  digestao_comgases,  pele_boa, pele_oleosa,  pele_seca, pele_acne,  mental_focado,  mental_tranquilidade,  mental_distracao,  mental_estresse,  motivacao_motivado,  motivacao_desanimado,  motivacao_produtivo,  motivacao_preguica,  peso_kg,  exercicio_corrida,  exercicio_academia,  exercicio_bicicleta,  exercicio_natacao,  festa_bebidas,  festa_fumo,  festa_ressaca,  festa_outrassubs) 
+		VALUES (  @dia_id, e_feliz, e_sensivel, e_triste, e_raiva, s_0a3, s_3a6, s_6a9, s_9oumais, v_ativo, v_alta, v_baixa, v_exaustao, b_otimo, b_normal, b_prisaoventre, b_diarreia, d_doce, d_salgado, d_carboidratos, d_otimo, d_inchaco, d_enjoo, d_comgases, p_boa, p_oleosa, p_seca, p_acne, m_focado, m_tranquilidade, m_distracao, m_estresse, m_motivado, m_desaminado, m_produtivo, m_preguica, p_kg, e_corrida, e_academia, e_bicicleta, e_natacao, f_bebidas, f_fumo, f_ressaca, f_outrassubs);
+		
+        -- SE FUNÇÃO FOR IGUAL A UPDATE, REALIZAR O UPDATE DAS INFORMAÇÕES
+        ELSEIF (func = "UPDATE") THEN
+        SET @dia_id = (SELECT user_dia_id FROM v_userdiamood WHERE usuario_id = user_id AND  user_dia_data = user_dia);
+        UPDATE user_dia_mood SET emocoes_feliz = e_feliz,  emocoes_sensivel = e_sensivel,  emocoes_triste = e_triste,  emocoes_raiva = e_raiva,  sono_0a3 = s_0a3,  sono_3a6 = s_3a6,  sono_6a9 = s_6a9,  sono_9oumais = s_9oumais,  vitalidade_ativo = v_ativo,  vitalidade_alta = v_alta,  vitalidade_baixa = v_baixa,  vitalidade_exaustao = v_exaustao,  banheiro_otimo = b_otimo,  banheiro_normal = b_normal,  banheiro_prisaoventre = b_prisaoventre,  banheiro_diarreia = b_diarreia,  desejo_doce = d_doce,  desejo_salgado = d_salgado,  desejo_carboidratos = d_carboidratos,  digestao_otimo = d_otimo,  digestao_inchaco = d_inchaco,  digestao_enjoo = d_enjoo,  digestao_comgases = d_comgases,  pele_boa = p_boa, pele_oleosa = p_oleosa,  pele_seca = p_seca, pele_acne = p_acne,  mental_focado = m_focado,  mental_tranquilidade = m_tranquilidade,  mental_distracao = m_distracao,  mental_estresse = m_estresse,  motivacao_motivado = m_motivado,  motivacao_desanimado = m_desaminado,  motivacao_produtivo = m_produtivo,  motivacao_preguica = m_preguica,  peso_kg = p_kg,  exercicio_corrida = e_corrida,  exercicio_academia = e_academia,  exercicio_bicicleta = e_bicicleta,  exercicio_natacao = e_natacao,  festa_bebidas = f_bebidas,  festa_fumo = f_fumo,  festa_ressaca = f_ressaca,  festa_outrassubs = f_outrassubs WHERE user_dia_mood_id = @dia_id; 
+        END IF;
+		
+	COMMIT;
+end$$
+
+--
+-- Funções
+--
+DROP FUNCTION IF EXISTS `divide_macros`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `divide_macros` (`perc_macro` INT, `kcal_total` INT, `tipo` CHAR) RETURNS DOUBLE BEGIN
+
+	DECLARE macro_total double;
+    set macro_total = kcal_total * perc_macro/100;
+    
+    CASE tipo
+		when tipo = "carb"
+        then set macro_total = macro_total / 4;
+        when tipo = "prot"
+        then set macro_total = macro_total / 4;
+        when tipo = "gord"
+        then set macro_total = macro_total / 9;
+	end case;
+    
+    return macro_total;
+END$$
+
+DROP FUNCTION IF EXISTS `new_kcaltotal`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `new_kcaltotal` (`peso` DOUBLE, `datanasc` DATE, `sexo` CHAR(1)) RETURNS INT(11) BEGIN
+declare kcal_total double;
+declare idade int;
+	set idade = FLOOR(DATEDIFF(now(),datanasc)/365); 
+	if (sexo = "M") then
+		if (idade >= 0 && idade <= 2) then  
+			set kcal_total = ((60.9 * peso) - 54);
+		elseif (idade >= 3 && idade <= 9) then
+			set kcal_total = ((22.7 * peso) + 495);
+		elseif (idade >= 10 && idade <= 17) then
+			set kcal_total = ((17.5 * peso) + 651);
+		elseif (idade >= 18 && idade <= 29) then
+			set kcal_total = ((15.3 * peso) + 679);
+		elseif (idade >= 30 && idade <= 59) then
+			set kcal_total = ((11.6 * peso) + 879);
+		elseif (idade >= 60) then
+			set kcal_total = ((13.5 * peso) + 487);
+		end if;
+	elseif (sexo = "F") then
+		if (idade >= 0 && idade <= 2) then  
+			set kcal_total = ((61.0 * peso) - 51);
+		elseif (idade >= 3 && idade <= 9) then
+			set kcal_total = ((22.5 * peso) + 499);
+		elseif (idade >= 10 && idade <= 17) then
+			set kcal_total = ((12.2 * peso) + 746);
+		elseif (idade >= 18 && idade <= 29) then
+			set kcal_total = ((14.7 * peso) + 496);
+		elseif (idade >= 30 && idade <= 59) then
+			set kcal_total = ((8.7 * peso) + 829);
+		elseif (idade >= 60) then
+			set kcal_total = ((12.5 * peso) + 596);
+		end if;
+	end if;
+RETURN kcal_total;
+END$$
+
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -28,6 +357,7 @@ SET time_zone = "+00:00";
 -- Estrutura da tabela `categoria_i`
 --
 
+DROP TABLE IF EXISTS `categoria_i`;
 CREATE TABLE `categoria_i` (
   `categoria_i_id` int(11) NOT NULL,
   `categoria_desc` varchar(45) COLLATE utf8_bin NOT NULL
@@ -37,7 +367,7 @@ CREATE TABLE `categoria_i` (
 -- Extraindo dados da tabela `categoria_i`
 --
 
-INSERT INTO `categoria_i` (`categoria_i_id`, `categoria_desc`) VALUES
+INSERT DELAYED INTO `categoria_i` (`categoria_i_id`, `categoria_desc`) VALUES
 (1, 'Cereais e derivados'),
 (2, 'Verduras, hortaliças e derivados'),
 (3, 'Frutas e derivados'),
@@ -60,9 +390,24 @@ INSERT INTO `categoria_i` (`categoria_i_id`, `categoria_desc`) VALUES
 -- Estrutura da tabela `categoria_r`
 --
 
+DROP TABLE IF EXISTS `categoria_r`;
 CREATE TABLE `categoria_r` (
-  `categoria_r_id` int(11) NOT NULL
+  `categoria_r_id` int(11) NOT NULL,
+  `categoria_r_nome` varchar(50) COLLATE utf8_bin NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+--
+-- Extraindo dados da tabela `categoria_r`
+--
+
+INSERT DELAYED INTO `categoria_r` (`categoria_r_id`, `categoria_r_nome`) VALUES
+(1, 'Sem açúcar'),
+(2, 'Vegano'),
+(3, 'Sem Lactose'),
+(4, 'Sem Glúten'),
+(5, 'Vegetariano'),
+(6, 'Sem Leite'),
+(7, 'Sem Gorduras Trans');
 
 -- --------------------------------------------------------
 
@@ -70,6 +415,7 @@ CREATE TABLE `categoria_r` (
 -- Estrutura da tabela `ingredientes`
 --
 
+DROP TABLE IF EXISTS `ingredientes`;
 CREATE TABLE `ingredientes` (
   `ingredientes_id` int(11) NOT NULL,
   `ingredientes_desc` varchar(100) COLLATE utf8_bin DEFAULT NULL,
@@ -81,7 +427,7 @@ CREATE TABLE `ingredientes` (
 -- Extraindo dados da tabela `ingredientes`
 --
 
-INSERT INTO `ingredientes` (`ingredientes_id`, `ingredientes_desc`, `ingredientes_base_qtd`, `ingredientes_base_unity`) VALUES
+INSERT DELAYED INTO `ingredientes` (`ingredientes_id`, `ingredientes_desc`, `ingredientes_base_qtd`, `ingredientes_base_unity`) VALUES
 (1, 'Arroz, integral, cozido', 100, 'g'),
 (2, 'Arroz, integral, cru', 100, 'g'),
 (3, 'Arroz, tipo 1, cozido', 100, 'g'),
@@ -686,6 +1032,7 @@ INSERT INTO `ingredientes` (`ingredientes_id`, `ingredientes_desc`, `ingrediente
 -- Estrutura da tabela `ingrediente_categorias`
 --
 
+DROP TABLE IF EXISTS `ingrediente_categorias`;
 CREATE TABLE `ingrediente_categorias` (
   `ingrediente_categorias_id` int(11) NOT NULL,
   `ingredientes_id` int(11) NOT NULL,
@@ -696,7 +1043,7 @@ CREATE TABLE `ingrediente_categorias` (
 -- Extraindo dados da tabela `ingrediente_categorias`
 --
 
-INSERT INTO `ingrediente_categorias` (`ingrediente_categorias_id`, `ingredientes_id`, `categoria_id`) VALUES
+INSERT DELAYED INTO `ingrediente_categorias` (`ingrediente_categorias_id`, `ingredientes_id`, `categoria_id`) VALUES
 (1, 1, 1),
 (2, 2, 1),
 (3, 3, 1),
@@ -1301,6 +1648,7 @@ INSERT INTO `ingrediente_categorias` (`ingrediente_categorias_id`, `ingredientes
 -- Estrutura da tabela `ingrediente_val_nutricional`
 --
 
+DROP TABLE IF EXISTS `ingrediente_val_nutricional`;
 CREATE TABLE `ingrediente_val_nutricional` (
   `ingrediente_val_nutricional_id` int(11) NOT NULL,
   `ingrediente_id` int(11) NOT NULL,
@@ -1322,7 +1670,7 @@ CREATE TABLE `ingrediente_val_nutricional` (
 -- Extraindo dados da tabela `ingrediente_val_nutricional`
 --
 
-INSERT INTO `ingrediente_val_nutricional` (`ingrediente_val_nutricional_id`, `ingrediente_id`, `humidity_qtd`, `humidity_unit`, `protein_qtd`, `protein_unit`, `lipid_qtd`, `lipid_unit`, `carbohydrate_qtd`, `carbohydrate_unit`, `fiber_qtd`, `fiber_unit`, `energy_kcal`, `energy_kj`) VALUES
+INSERT DELAYED INTO `ingrediente_val_nutricional` (`ingrediente_val_nutricional_id`, `ingrediente_id`, `humidity_qtd`, `humidity_unit`, `protein_qtd`, `protein_unit`, `lipid_qtd`, `lipid_unit`, `carbohydrate_qtd`, `carbohydrate_unit`, `fiber_qtd`, `fiber_unit`, `energy_kcal`, `energy_kj`) VALUES
 (1, 1, 70.139, 'percents', 2.588, 'g', 1, 'g', 25.81, 'g', 2.749, 'g', 123.535, 516.87),
 (2, 2, 12.18, 'percents', 7.323, 'g', 1.865, 'g', 77.451, 'g', 4.819, 'g', 359.678, 1504.89),
 (3, 3, 69.114, 'percents', 2.521, 'g', 0.227, 'g', 28.06, 'g', 1.561, 'g', 128.258, 536.634),
@@ -1868,7 +2216,7 @@ INSERT INTO `ingrediente_val_nutricional` (`ingrediente_val_nutricional_id`, `in
 (543, 543, 76.395, 'percents', 9.958, 'g', 8.699, 'g', 3.419, 'g', 2.16, 'g', 134.223, 561.589),
 (544, 544, 81.106, 'percents', 8.556, 'g', 2.672, 'g', 6.644, 'g', 1.667, 'g', 86.349, 361.285),
 (545, 545, 82.037, 'percents', 1.05, 'g', 7.039, 'g', 8.924, 'g', 2.217, 'g', 96.104, 402.097);
-INSERT INTO `ingrediente_val_nutricional` (`ingrediente_val_nutricional_id`, `ingrediente_id`, `humidity_qtd`, `humidity_unit`, `protein_qtd`, `protein_unit`, `lipid_qtd`, `lipid_unit`, `carbohydrate_qtd`, `carbohydrate_unit`, `fiber_qtd`, `fiber_unit`, `energy_kcal`, `energy_kj`) VALUES
+INSERT DELAYED INTO `ingrediente_val_nutricional` (`ingrediente_val_nutricional_id`, `ingrediente_id`, `humidity_qtd`, `humidity_unit`, `protein_qtd`, `protein_unit`, `lipid_qtd`, `lipid_unit`, `carbohydrate_qtd`, `carbohydrate_unit`, `fiber_qtd`, `fiber_unit`, `energy_kcal`, `energy_kj`) VALUES
 (546, 546, 89.979, 'percents', 2.006, 'g', 0.312, 'g', 7.089, 'g', 2.513, 'g', 35.408, 148.148),
 (547, 547, 72.528, 'percents', 13.925, 'g', 7.841, 'g', 4.569, 'g', 0.41, 'g', 147.865, 618.665),
 (548, 548, 74.951, 'percents', 18.473, 'g', 4.42, 'g', 1.094, 'g', 0, 'g', 122.982, 514.556),
@@ -1928,6 +2276,7 @@ INSERT INTO `ingrediente_val_nutricional` (`ingrediente_val_nutricional_id`, `in
 -- Estrutura da tabela `momento`
 --
 
+DROP TABLE IF EXISTS `momento`;
 CREATE TABLE `momento` (
   `momento_id` int(11) NOT NULL,
   `momento_desc` varchar(45) COLLATE utf8_bin NOT NULL
@@ -1937,7 +2286,7 @@ CREATE TABLE `momento` (
 -- Extraindo dados da tabela `momento`
 --
 
-INSERT INTO `momento` (`momento_id`, `momento_desc`) VALUES
+INSERT DELAYED INTO `momento` (`momento_id`, `momento_desc`) VALUES
 (1, 'Café da Manhã'),
 (2, 'Lanche da Manhã'),
 (3, 'Almoço'),
@@ -1951,6 +2300,7 @@ INSERT INTO `momento` (`momento_id`, `momento_desc`) VALUES
 -- Estrutura da tabela `paciente_profissional`
 --
 
+DROP TABLE IF EXISTS `paciente_profissional`;
 CREATE TABLE `paciente_profissional` (
   `paciente_profissional_id` int(11) NOT NULL,
   `paciente_id` int(11) NOT NULL,
@@ -1963,13 +2313,25 @@ CREATE TABLE `paciente_profissional` (
 -- Estrutura da tabela `receita`
 --
 
+DROP TABLE IF EXISTS `receita`;
 CREATE TABLE `receita` (
   `receita_id` int(11) NOT NULL,
   `usuario_id` int(11) NOT NULL,
   `nivel_receita_id` int(11) NOT NULL,
   `receita_tempo_preparo` time DEFAULT NULL,
-  `receita_` varchar(45) COLLATE utf8_bin DEFAULT NULL
+  `receita_porcoes` int(11) DEFAULT NULL,
+  `receita_nome` varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  `receita_desc` text COLLATE utf8_bin DEFAULT NULL,
+  `recita_modo` tinyint(4) DEFAULT NULL,
+  `receita_status` tinyint(4) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+--
+-- Extraindo dados da tabela `receita`
+--
+
+INSERT DELAYED INTO `receita` (`receita_id`, `usuario_id`, `nivel_receita_id`, `receita_tempo_preparo`, `receita_porcoes`, `receita_nome`, `receita_desc`, `recita_modo`, `receita_status`) VALUES
+(1, 2, 1, '00:25:00', 5, 'Arroz Cozido', 'Arroz caseiro, uma delícia!', 1, 1);
 
 -- --------------------------------------------------------
 
@@ -1977,6 +2339,7 @@ CREATE TABLE `receita` (
 -- Estrutura da tabela `receita_aval`
 --
 
+DROP TABLE IF EXISTS `receita_aval`;
 CREATE TABLE `receita_aval` (
   `receita_aval_id` int(11) NOT NULL,
   `receita_id` int(11) NOT NULL,
@@ -1990,11 +2353,20 @@ CREATE TABLE `receita_aval` (
 -- Estrutura da tabela `receita_categorias`
 --
 
+DROP TABLE IF EXISTS `receita_categorias`;
 CREATE TABLE `receita_categorias` (
   `receita_categorias_id` int(11) NOT NULL,
   `receita_id` int(11) NOT NULL,
   `categoria_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+--
+-- Extraindo dados da tabela `receita_categorias`
+--
+
+INSERT DELAYED INTO `receita_categorias` (`receita_categorias_id`, `receita_id`, `categoria_id`) VALUES
+(1, 1, 1),
+(2, 1, 2);
 
 -- --------------------------------------------------------
 
@@ -2002,11 +2374,20 @@ CREATE TABLE `receita_categorias` (
 -- Estrutura da tabela `receita_imagens`
 --
 
+DROP TABLE IF EXISTS `receita_imagens`;
 CREATE TABLE `receita_imagens` (
   `receita_imagens_id` int(11) NOT NULL,
   `receita_receita_id` int(11) NOT NULL,
   `receita_imagens_path` varchar(150) COLLATE utf8_bin DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+--
+-- Extraindo dados da tabela `receita_imagens`
+--
+
+INSERT DELAYED INTO `receita_imagens` (`receita_imagens_id`, `receita_receita_id`, `receita_imagens_path`) VALUES
+(1, 1, 'recipepics/rec1_pic1.jpg'),
+(2, 1, 'recipepics/rec1_pic2.jpg');
 
 -- --------------------------------------------------------
 
@@ -2014,6 +2395,7 @@ CREATE TABLE `receita_imagens` (
 -- Estrutura da tabela `receita_ingredientes`
 --
 
+DROP TABLE IF EXISTS `receita_ingredientes`;
 CREATE TABLE `receita_ingredientes` (
   `receita_ingredientes_id` int(11) NOT NULL,
   `receita_id` int(11) NOT NULL,
@@ -2021,17 +2403,32 @@ CREATE TABLE `receita_ingredientes` (
   `receita_ingredientes_qtd` float DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
+--
+-- Extraindo dados da tabela `receita_ingredientes`
+--
+
+INSERT DELAYED INTO `receita_ingredientes` (`receita_ingredientes_id`, `receita_id`, `ingredientes_id`, `receita_ingredientes_qtd`) VALUES
+(1, 1, 4, 1);
+
 -- --------------------------------------------------------
 
 --
 -- Estrutura da tabela `receita_momentos`
 --
 
+DROP TABLE IF EXISTS `receita_momentos`;
 CREATE TABLE `receita_momentos` (
   `receita_momentos_id` int(11) NOT NULL,
   `momento_id` int(11) NOT NULL,
   `receita_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+--
+-- Extraindo dados da tabela `receita_momentos`
+--
+
+INSERT DELAYED INTO `receita_momentos` (`receita_momentos_id`, `momento_id`, `receita_id`) VALUES
+(1, 3, 1);
 
 -- --------------------------------------------------------
 
@@ -2039,10 +2436,20 @@ CREATE TABLE `receita_momentos` (
 -- Estrutura da tabela `receita_nivel`
 --
 
+DROP TABLE IF EXISTS `receita_nivel`;
 CREATE TABLE `receita_nivel` (
   `receita_nivel_id` int(11) NOT NULL,
   `rn_nivel` varchar(45) COLLATE utf8_bin NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+--
+-- Extraindo dados da tabela `receita_nivel`
+--
+
+INSERT DELAYED INTO `receita_nivel` (`receita_nivel_id`, `rn_nivel`) VALUES
+(1, 'Fácil'),
+(2, 'Médio'),
+(3, 'Difícil');
 
 -- --------------------------------------------------------
 
@@ -2050,6 +2457,7 @@ CREATE TABLE `receita_nivel` (
 -- Estrutura da tabela `receita_passos`
 --
 
+DROP TABLE IF EXISTS `receita_passos`;
 CREATE TABLE `receita_passos` (
   `receita_passos_id` int(11) NOT NULL,
   `receita_id` int(11) NOT NULL,
@@ -2057,12 +2465,21 @@ CREATE TABLE `receita_passos` (
   `rp_desc` mediumtext COLLATE utf8_bin NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
+--
+-- Extraindo dados da tabela `receita_passos`
+--
+
+INSERT DELAYED INTO `receita_passos` (`receita_passos_id`, `receita_id`, `rp_numero`, `rp_desc`) VALUES
+(1, 1, 1, 'Teste Teste testando'),
+(2, 1, 2, 'testando segundo passo');
+
 -- --------------------------------------------------------
 
 --
 -- Estrutura da tabela `receita_val_nutricional`
 --
 
+DROP TABLE IF EXISTS `receita_val_nutricional`;
 CREATE TABLE `receita_val_nutricional` (
   `receita_val_nutricional_id` int(11) NOT NULL,
   `receita_id` int(11) NOT NULL,
@@ -2080,12 +2497,20 @@ CREATE TABLE `receita_val_nutricional` (
   `energy_kj` float NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
+--
+-- Extraindo dados da tabela `receita_val_nutricional`
+--
+
+INSERT DELAYED INTO `receita_val_nutricional` (`receita_val_nutricional_id`, `receita_id`, `humidity_qtd`, `humidity_unit`, `protein_qtd`, `protein_unit`, `lipid_qtd`, `lipid_unit`, `carbohydrate_qtd`, `carbohydrate_unit`, `fiber_qtd`, `fiber_unit`, `energy_kcal`, `energy_kj`) VALUES
+(1, 1, 13.225, 'percents', 7.159, 'g', 0.335, 'g', 78.76, 'g', 1.639, 'g', 357.789, 1496.99);
+
 -- --------------------------------------------------------
 
 --
 -- Estrutura da tabela `udm_receita`
 --
 
+DROP TABLE IF EXISTS `udm_receita`;
 CREATE TABLE `udm_receita` (
   `udm_receita_id` int(11) NOT NULL,
   `user_dia_momento_id` int(11) NOT NULL,
@@ -2098,6 +2523,7 @@ CREATE TABLE `udm_receita` (
 -- Estrutura da tabela `user_book`
 --
 
+DROP TABLE IF EXISTS `user_book`;
 CREATE TABLE `user_book` (
   `user_book_id` int(11) NOT NULL,
   `usuario_id` int(11) NOT NULL,
@@ -2110,6 +2536,7 @@ CREATE TABLE `user_book` (
 -- Estrutura da tabela `user_book_rec`
 --
 
+DROP TABLE IF EXISTS `user_book_rec`;
 CREATE TABLE `user_book_rec` (
   `user_book_rec_id` int(11) NOT NULL,
   `ub_id` int(11) NOT NULL,
@@ -2122,6 +2549,7 @@ CREATE TABLE `user_book_rec` (
 -- Estrutura da tabela `user_dia`
 --
 
+DROP TABLE IF EXISTS `user_dia`;
 CREATE TABLE `user_dia` (
   `user_dia_id` int(11) NOT NULL,
   `usuario_id` int(11) NOT NULL,
@@ -2134,14 +2562,20 @@ CREATE TABLE `user_dia` (
 -- Estrutura da tabela `user_dia_macros`
 --
 
+DROP TABLE IF EXISTS `user_dia_macros`;
 CREATE TABLE `user_dia_macros` (
   `user_dia_macros_id` int(11) NOT NULL,
   `user_dia_id` int(11) NOT NULL,
-  `udm_kcal` float DEFAULT NULL,
-  `udm_prot` float DEFAULT NULL,
-  `udm_carb` float DEFAULT NULL,
-  `udm_gord` float DEFAULT NULL,
-  `udm_fibra` float DEFAULT NULL
+  `udm_kcal` float NOT NULL DEFAULT 0,
+  `udm_prot` float NOT NULL DEFAULT 0,
+  `udm_carb` float NOT NULL DEFAULT 0,
+  `udm_gord` float NOT NULL DEFAULT 0,
+  `udm_fibra` float NOT NULL DEFAULT 0,
+  `udc_kcal` float NOT NULL,
+  `udc_prot` float NOT NULL,
+  `udc_carb` float NOT NULL,
+  `udc_gord` float NOT NULL,
+  `udc_fibra` float NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='								';
 
 -- --------------------------------------------------------
@@ -2150,6 +2584,7 @@ CREATE TABLE `user_dia_macros` (
 -- Estrutura da tabela `user_dia_momento`
 --
 
+DROP TABLE IF EXISTS `user_dia_momento`;
 CREATE TABLE `user_dia_momento` (
   `user_dia_momento_id` int(11) NOT NULL,
   `user_dia_id` int(11) NOT NULL,
@@ -2163,6 +2598,7 @@ CREATE TABLE `user_dia_momento` (
 -- Estrutura da tabela `user_dia_mood`
 --
 
+DROP TABLE IF EXISTS `user_dia_mood`;
 CREATE TABLE `user_dia_mood` (
   `user_dia_mood_id` int(11) NOT NULL,
   `user_dia_id` int(11) NOT NULL,
@@ -2218,6 +2654,7 @@ CREATE TABLE `user_dia_mood` (
 -- Estrutura da tabela `user_peso_historico`
 --
 
+DROP TABLE IF EXISTS `user_peso_historico`;
 CREATE TABLE `user_peso_historico` (
   `user_peso_historico_id` int(11) NOT NULL,
   `usuario_usuario_id` int(11) NOT NULL,
@@ -2231,6 +2668,7 @@ CREATE TABLE `user_peso_historico` (
 -- Estrutura da tabela `user_rec_fav`
 --
 
+DROP TABLE IF EXISTS `user_rec_fav`;
 CREATE TABLE `user_rec_fav` (
   `urf_id` int(11) NOT NULL,
   `usuario_id` int(11) NOT NULL,
@@ -2243,6 +2681,7 @@ CREATE TABLE `user_rec_fav` (
 -- Estrutura da tabela `usuario`
 --
 
+DROP TABLE IF EXISTS `usuario`;
 CREATE TABLE `usuario` (
   `usuario_id` int(11) NOT NULL,
   `usuario_email` varchar(45) COLLATE utf8_bin NOT NULL,
@@ -2259,14 +2698,14 @@ CREATE TABLE `usuario` (
 -- Estrutura da tabela `usuario_configs_macros`
 --
 
+DROP TABLE IF EXISTS `usuario_configs_macros`;
 CREATE TABLE `usuario_configs_macros` (
   `usuario_configs_macros_id` int(11) NOT NULL,
   `usuario_id` int(11) NOT NULL,
   `ucm_kcal` float NOT NULL,
   `ucm_carb` float NOT NULL,
   `ucm_prot` float NOT NULL,
-  `ucm_gord` float NOT NULL,
-  `ucm_fibras` float NOT NULL
+  `ucm_gord` float NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 -- --------------------------------------------------------
@@ -2275,22 +2714,23 @@ CREATE TABLE `usuario_configs_macros` (
 -- Estrutura da tabela `usuario_configs_mood`
 --
 
+DROP TABLE IF EXISTS `usuario_configs_mood`;
 CREATE TABLE `usuario_configs_mood` (
   `usuario_configs_mood_id` int(11) NOT NULL,
   `usuario_id` int(11) NOT NULL,
-  `um_emocoes` tinyint(4) NOT NULL DEFAULT '1',
-  `um_sono` tinyint(4) NOT NULL DEFAULT '1',
-  `um_vitalidade` tinyint(4) NOT NULL DEFAULT '1',
-  `um_banheiro` tinyint(4) NOT NULL DEFAULT '1',
-  `um_desejo` tinyint(4) NOT NULL DEFAULT '1',
-  `um_digestao` tinyint(4) NOT NULL DEFAULT '1',
-  `um_pele` tinyint(4) NOT NULL DEFAULT '1',
-  `um_mental` tinyint(4) NOT NULL DEFAULT '1',
-  `um_motivacao` tinyint(4) NOT NULL DEFAULT '1',
-  `um_medicacao` tinyint(4) NOT NULL DEFAULT '1',
-  `um_peso` tinyint(4) NOT NULL DEFAULT '1',
-  `um_exercicio` tinyint(4) NOT NULL DEFAULT '1',
-  `um_festa` tinyint(4) NOT NULL DEFAULT '1'
+  `um_emocoes` tinyint(4) NOT NULL DEFAULT 1,
+  `um_sono` tinyint(4) NOT NULL DEFAULT 1,
+  `um_vitalidade` tinyint(4) NOT NULL DEFAULT 1,
+  `um_banheiro` tinyint(4) NOT NULL DEFAULT 1,
+  `um_desejo` tinyint(4) NOT NULL DEFAULT 1,
+  `um_digestao` tinyint(4) NOT NULL DEFAULT 1,
+  `um_pele` tinyint(4) NOT NULL DEFAULT 1,
+  `um_mental` tinyint(4) NOT NULL DEFAULT 1,
+  `um_motivacao` tinyint(4) NOT NULL DEFAULT 1,
+  `um_medicacao` tinyint(4) NOT NULL DEFAULT 1,
+  `um_peso` tinyint(4) NOT NULL DEFAULT 1,
+  `um_exercicio` tinyint(4) NOT NULL DEFAULT 1,
+  `um_festa` tinyint(4) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 -- --------------------------------------------------------
@@ -2299,39 +2739,236 @@ CREATE TABLE `usuario_configs_mood` (
 -- Estrutura da tabela `usuario_configs_ref`
 --
 
+DROP TABLE IF EXISTS `usuario_configs_ref`;
 CREATE TABLE `usuario_configs_ref` (
   `usuario_configs_geral_id` int(11) NOT NULL,
   `usuario_id` int(11) NOT NULL,
   `ucr_datanasc` date NOT NULL,
   `ucr_peso` float NOT NULL,
   `ucr_sexo` char(1) COLLATE utf8_bin NOT NULL,
-  `ucr_is_active` char(1) COLLATE utf8_bin NOT NULL
+  `ucr_is_active` char(1) COLLATE utf8_bin NOT NULL,
+  `ucr_altura` float NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
+-- --------------------------------------------------------
+
 --
--- Indexes for dumped tables
+-- Estrutura stand-in para vista `view_receita`
+-- (Veja abaixo para a view atual)
+--
+DROP VIEW IF EXISTS `view_receita`;
+CREATE TABLE `view_receita` (
+`receita_id` int(11)
+,`receita_nome` varchar(100)
+,`receita_desc` text
+,`receita_porcoes` int(11)
+,`receita_tempo_preparo` time
+,`rn_nivel` varchar(45)
+,`momento` mediumtext
+,`humidity_qtd` float
+,`humidity_unit` varchar(45)
+,`protein_qtd` float
+,`protein_unit` varchar(45)
+,`lipid_qtd` float
+,`lipid_unit` varchar(45)
+,`carbohydrate_qtd` float
+,`carbohydrate_unit` varchar(45)
+,`fiber_qtd` float
+,`fiber_unit` varchar(45)
+,`energy_kcal` float
+,`energy_kj` float
+);
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura stand-in para vista `v_receita_ingredientes`
+-- (Veja abaixo para a view atual)
+--
+DROP VIEW IF EXISTS `v_receita_ingredientes`;
+CREATE TABLE `v_receita_ingredientes` (
+`receita_id` int(11)
+,`ingredientes_id` int(11)
+,`ingredientes_desc` varchar(100)
+,`receita_ingredientes_qtd` float
+,`ingredientes_base_qtd` float
+,`ingredientes_base_unity` varchar(45)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura stand-in para vista `v_userdia`
+-- (Veja abaixo para a view atual)
+--
+DROP VIEW IF EXISTS `v_userdia`;
+CREATE TABLE `v_userdia` (
+`usuario_id` int(11)
+,`user_dia_data` date
+,`udm_kcal` float
+,`udm_carb` float
+,`udm_prot` float
+,`udm_fibra` float
+,`udm_gord` float
+,`udc_kcal` float
+,`udc_carb` float
+,`udc_prot` float
+,`udc_fibra` float
+,`udc_gord` float
+);
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura stand-in para vista `v_userdiameal`
+-- (Veja abaixo para a view atual)
+--
+DROP VIEW IF EXISTS `v_userdiameal`;
+CREATE TABLE `v_userdiameal` (
+`user_dia_id` int(11)
+,`usuario_id` int(11)
+,`udm_receita_id` int(11)
+,`user_dia_data` date
+,`momento_id` int(11)
+,`momento_desc` varchar(45)
+,`receita_id` int(11)
+,`receita_nome` varchar(100)
+,`receita_kcal` float
+,`momento_kcal` float
+,`categorias_receita` mediumtext
+);
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura stand-in para vista `v_userdiamood`
+-- (Veja abaixo para a view atual)
+--
+DROP VIEW IF EXISTS `v_userdiamood`;
+CREATE TABLE `v_userdiamood` (
+`user_dia_id` int(11)
+,`usuario_id` int(11)
+,`user_dia_data` date
+,`emocoes_feliz` tinyint(4)
+,`emocoes_sensivel` tinyint(4)
+,`emocoes_triste` tinyint(4)
+,`emocoes_raiva` tinyint(4)
+,`sono_0a3` tinyint(4)
+,`sono_3a6` tinyint(4)
+,`sono_6a9` tinyint(4)
+,`sono_9oumais` tinyint(4)
+,`vitalidade_ativo` tinyint(4)
+,`vitalidade_alta` tinyint(4)
+,`vitalidade_baixa` tinyint(4)
+,`vitalidade_exaustao` tinyint(4)
+,`banheiro_otimo` tinyint(4)
+,`banheiro_normal` tinyint(4)
+,`banheiro_prisaoventre` tinyint(4)
+,`banheiro_diarreia` tinyint(4)
+,`desejo_doce` tinyint(4)
+,`desejo_salgado` tinyint(4)
+,`desejo_carboidratos` tinyint(4)
+,`digestao_otimo` tinyint(4)
+,`digestao_inchaco` tinyint(4)
+,`digestao_enjoo` tinyint(4)
+,`digestao_comgases` tinyint(4)
+,`pele_boa` tinyint(4)
+,`pele_oleosa` tinyint(4)
+,`pele_seca` tinyint(4)
+,`pele_acne` tinyint(4)
+,`mental_focado` tinyint(4)
+,`mental_tranquilidade` tinyint(4)
+,`mental_distracao` tinyint(4)
+,`mental_estresse` tinyint(4)
+,`motivacao_motivado` tinyint(4)
+,`motivacao_desanimado` tinyint(4)
+,`motivacao_produtivo` tinyint(4)
+,`motivacao_preguica` tinyint(4)
+,`peso_kg` float
+,`exercicio_corrida` tinyint(4)
+,`exercicio_academia` tinyint(4)
+,`exercicio_bicicleta` tinyint(4)
+,`exercicio_natacao` tinyint(4)
+,`festa_bebidas` tinyint(4)
+,`festa_fumo` tinyint(4)
+,`festa_ressaca` tinyint(4)
+,`festa_outrassubs` tinyint(4)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para vista `view_receita`
+--
+DROP TABLE IF EXISTS `view_receita`;
+
+DROP VIEW IF EXISTS `view_receita`;
+CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_receita`  AS SELECT `r`.`receita_id` AS `receita_id`, `r`.`receita_nome` AS `receita_nome`, `r`.`receita_desc` AS `receita_desc`, `r`.`receita_porcoes` AS `receita_porcoes`, `r`.`receita_tempo_preparo` AS `receita_tempo_preparo`, `rn`.`rn_nivel` AS `rn_nivel`, group_concat(`m`.`momento_desc` separator ' , ') AS `momento`, `rvn`.`humidity_qtd` AS `humidity_qtd`, `rvn`.`humidity_unit` AS `humidity_unit`, `rvn`.`protein_qtd` AS `protein_qtd`, `rvn`.`protein_unit` AS `protein_unit`, `rvn`.`lipid_qtd` AS `lipid_qtd`, `rvn`.`lipid_unit` AS `lipid_unit`, `rvn`.`carbohydrate_qtd` AS `carbohydrate_qtd`, `rvn`.`carbohydrate_unit` AS `carbohydrate_unit`, `rvn`.`fiber_qtd` AS `fiber_qtd`, `rvn`.`fiber_unit` AS `fiber_unit`, `rvn`.`energy_kcal` AS `energy_kcal`, `rvn`.`energy_kj` AS `energy_kj` FROM ((((`receita` `r` join `receita_nivel` `rn` on(`rn`.`receita_nivel_id` = `r`.`nivel_receita_id`)) join `receita_val_nutricional` `rvn` on(`rvn`.`receita_id` = `r`.`receita_id`)) join `receita_momentos` `rm` on(`rm`.`receita_id` = `r`.`receita_id`)) join `momento` `m` on(`rm`.`momento_id` = `m`.`momento_id`)) ;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para vista `v_receita_ingredientes`
+--
+DROP TABLE IF EXISTS `v_receita_ingredientes`;
+
+DROP VIEW IF EXISTS `v_receita_ingredientes`;
+CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_receita_ingredientes`  AS SELECT `ri`.`receita_id` AS `receita_id`, `ri`.`ingredientes_id` AS `ingredientes_id`, `i`.`ingredientes_desc` AS `ingredientes_desc`, `ri`.`receita_ingredientes_qtd` AS `receita_ingredientes_qtd`, `i`.`ingredientes_base_qtd` AS `ingredientes_base_qtd`, `i`.`ingredientes_base_unity` AS `ingredientes_base_unity` FROM (`receita_ingredientes` `ri` join `ingredientes` `i` on(`i`.`ingredientes_id` = `ri`.`ingredientes_id`)) ;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para vista `v_userdia`
+--
+DROP TABLE IF EXISTS `v_userdia`;
+
+DROP VIEW IF EXISTS `v_userdia`;
+CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_userdia`  AS SELECT `ud`.`usuario_id` AS `usuario_id`, `ud`.`user_dia_data` AS `user_dia_data`, `udm`.`udm_kcal` AS `udm_kcal`, `udm`.`udm_carb` AS `udm_carb`, `udm`.`udm_prot` AS `udm_prot`, `udm`.`udm_fibra` AS `udm_fibra`, `udm`.`udm_gord` AS `udm_gord`, `udm`.`udc_kcal` AS `udc_kcal`, `udm`.`udc_carb` AS `udc_carb`, `udm`.`udc_prot` AS `udc_prot`, `udm`.`udc_fibra` AS `udc_fibra`, `udm`.`udc_gord` AS `udc_gord` FROM (`user_dia` `ud` join `user_dia_macros` `udm` on(`ud`.`user_dia_id` = `udm`.`user_dia_id`)) ;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para vista `v_userdiameal`
+--
+DROP TABLE IF EXISTS `v_userdiameal`;
+
+DROP VIEW IF EXISTS `v_userdiameal`;
+CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_userdiameal`  AS SELECT `ud`.`user_dia_id` AS `user_dia_id`, `ud`.`usuario_id` AS `usuario_id`, `udr`.`udm_receita_id` AS `udm_receita_id`, `ud`.`user_dia_data` AS `user_dia_data`, `m`.`momento_id` AS `momento_id`, `m`.`momento_desc` AS `momento_desc`, `r`.`receita_id` AS `receita_id`, `r`.`receita_nome` AS `receita_nome`, `rv`.`energy_kcal` AS `receita_kcal`, `udm`.`momento_kcal` AS `momento_kcal`, group_concat(`cr`.`categoria_r_nome` separator ', ') AS `categorias_receita` FROM (((((((`user_dia` `ud` join `user_dia_momento` `udm` on(`udm`.`user_dia_id` = `ud`.`user_dia_id`)) join `momento` `m` on(`m`.`momento_id` = `udm`.`momento_id`)) join `udm_receita` `udr` on(`udr`.`user_dia_momento_id` = `udm`.`user_dia_momento_id`)) join `receita` `r` on(`r`.`receita_id` = `udr`.`receita_id`)) join `receita_val_nutricional` `rv` on(`rv`.`receita_id` = `r`.`receita_id`)) join `receita_categorias` `c` on(`c`.`receita_id` = `r`.`receita_id`)) join `categoria_r` `cr` on(`cr`.`categoria_r_id` = `c`.`categoria_id`)) GROUP BY `udr`.`udm_receita_id` ;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para vista `v_userdiamood`
+--
+DROP TABLE IF EXISTS `v_userdiamood`;
+
+DROP VIEW IF EXISTS `v_userdiamood`;
+CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_userdiamood`  AS SELECT `ud`.`user_dia_id` AS `user_dia_id`, `ud`.`usuario_id` AS `usuario_id`, `ud`.`user_dia_data` AS `user_dia_data`, `udm`.`emocoes_feliz` AS `emocoes_feliz`, `udm`.`emocoes_sensivel` AS `emocoes_sensivel`, `udm`.`emocoes_triste` AS `emocoes_triste`, `udm`.`emocoes_raiva` AS `emocoes_raiva`, `udm`.`sono_0a3` AS `sono_0a3`, `udm`.`sono_3a6` AS `sono_3a6`, `udm`.`sono_6a9` AS `sono_6a9`, `udm`.`sono_9oumais` AS `sono_9oumais`, `udm`.`vitalidade_ativo` AS `vitalidade_ativo`, `udm`.`vitalidade_alta` AS `vitalidade_alta`, `udm`.`vitalidade_baixa` AS `vitalidade_baixa`, `udm`.`vitalidade_exaustao` AS `vitalidade_exaustao`, `udm`.`banheiro_otimo` AS `banheiro_otimo`, `udm`.`banheiro_normal` AS `banheiro_normal`, `udm`.`banheiro_prisaoventre` AS `banheiro_prisaoventre`, `udm`.`banheiro_diarreia` AS `banheiro_diarreia`, `udm`.`desejo_doce` AS `desejo_doce`, `udm`.`desejo_salgado` AS `desejo_salgado`, `udm`.`desejo_carboidratos` AS `desejo_carboidratos`, `udm`.`digestao_otimo` AS `digestao_otimo`, `udm`.`digestao_inchaco` AS `digestao_inchaco`, `udm`.`digestao_enjoo` AS `digestao_enjoo`, `udm`.`digestao_comgases` AS `digestao_comgases`, `udm`.`pele_boa` AS `pele_boa`, `udm`.`pele_oleosa` AS `pele_oleosa`, `udm`.`pele_seca` AS `pele_seca`, `udm`.`pele_acne` AS `pele_acne`, `udm`.`mental_focado` AS `mental_focado`, `udm`.`mental_tranquilidade` AS `mental_tranquilidade`, `udm`.`mental_distracao` AS `mental_distracao`, `udm`.`mental_estresse` AS `mental_estresse`, `udm`.`motivacao_motivado` AS `motivacao_motivado`, `udm`.`motivacao_desanimado` AS `motivacao_desanimado`, `udm`.`motivacao_produtivo` AS `motivacao_produtivo`, `udm`.`motivacao_preguica` AS `motivacao_preguica`, `udm`.`peso_kg` AS `peso_kg`, `udm`.`exercicio_corrida` AS `exercicio_corrida`, `udm`.`exercicio_academia` AS `exercicio_academia`, `udm`.`exercicio_bicicleta` AS `exercicio_bicicleta`, `udm`.`exercicio_natacao` AS `exercicio_natacao`, `udm`.`festa_bebidas` AS `festa_bebidas`, `udm`.`festa_fumo` AS `festa_fumo`, `udm`.`festa_ressaca` AS `festa_ressaca`, `udm`.`festa_outrassubs` AS `festa_outrassubs` FROM (`user_dia_mood` `udm` join `user_dia` `ud` on(`ud`.`user_dia_id` = `udm`.`user_dia_id`)) ;
+
+--
+-- Índices para tabelas despejadas
 --
 
 --
--- Indexes for table `categoria_i`
+-- Índices para tabela `categoria_i`
 --
 ALTER TABLE `categoria_i`
   ADD PRIMARY KEY (`categoria_i_id`);
 
 --
--- Indexes for table `categoria_r`
+-- Índices para tabela `categoria_r`
 --
 ALTER TABLE `categoria_r`
   ADD PRIMARY KEY (`categoria_r_id`);
 
 --
--- Indexes for table `ingredientes`
+-- Índices para tabela `ingredientes`
 --
 ALTER TABLE `ingredientes`
   ADD PRIMARY KEY (`ingredientes_id`);
 
 --
--- Indexes for table `ingrediente_categorias`
+-- Índices para tabela `ingrediente_categorias`
 --
 ALTER TABLE `ingrediente_categorias`
   ADD PRIMARY KEY (`ingrediente_categorias_id`),
@@ -2339,20 +2976,20 @@ ALTER TABLE `ingrediente_categorias`
   ADD KEY `fk_ingrediente_categorias_categoria_i1_idx` (`categoria_id`);
 
 --
--- Indexes for table `ingrediente_val_nutricional`
+-- Índices para tabela `ingrediente_val_nutricional`
 --
 ALTER TABLE `ingrediente_val_nutricional`
   ADD PRIMARY KEY (`ingrediente_val_nutricional_id`),
   ADD KEY `fk_ingrediente_val_nutricional_ingredientes1_idx` (`ingrediente_id`);
 
 --
--- Indexes for table `momento`
+-- Índices para tabela `momento`
 --
 ALTER TABLE `momento`
   ADD PRIMARY KEY (`momento_id`);
 
 --
--- Indexes for table `paciente_profissional`
+-- Índices para tabela `paciente_profissional`
 --
 ALTER TABLE `paciente_profissional`
   ADD PRIMARY KEY (`paciente_profissional_id`),
@@ -2360,7 +2997,7 @@ ALTER TABLE `paciente_profissional`
   ADD KEY `profissional_id_idx` (`profissional_id`);
 
 --
--- Indexes for table `receita`
+-- Índices para tabela `receita`
 --
 ALTER TABLE `receita`
   ADD PRIMARY KEY (`receita_id`),
@@ -2368,7 +3005,7 @@ ALTER TABLE `receita`
   ADD KEY `fk_receita_receita_nivel1_idx` (`nivel_receita_id`);
 
 --
--- Indexes for table `receita_aval`
+-- Índices para tabela `receita_aval`
 --
 ALTER TABLE `receita_aval`
   ADD PRIMARY KEY (`receita_aval_id`),
@@ -2376,7 +3013,7 @@ ALTER TABLE `receita_aval`
   ADD KEY `fk_receita_aval_usuario1_idx` (`usuario_id`);
 
 --
--- Indexes for table `receita_categorias`
+-- Índices para tabela `receita_categorias`
 --
 ALTER TABLE `receita_categorias`
   ADD PRIMARY KEY (`receita_categorias_id`),
@@ -2384,14 +3021,14 @@ ALTER TABLE `receita_categorias`
   ADD KEY `fk_receita_categorias_categoria_r1_idx` (`categoria_id`);
 
 --
--- Indexes for table `receita_imagens`
+-- Índices para tabela `receita_imagens`
 --
 ALTER TABLE `receita_imagens`
   ADD PRIMARY KEY (`receita_imagens_id`),
   ADD KEY `fk_receita_imagens_receita1_idx` (`receita_receita_id`);
 
 --
--- Indexes for table `receita_ingredientes`
+-- Índices para tabela `receita_ingredientes`
 --
 ALTER TABLE `receita_ingredientes`
   ADD PRIMARY KEY (`receita_ingredientes_id`),
@@ -2399,7 +3036,7 @@ ALTER TABLE `receita_ingredientes`
   ADD KEY `fk_receita_ingredientes_ingredientes1_idx` (`ingredientes_id`);
 
 --
--- Indexes for table `receita_momentos`
+-- Índices para tabela `receita_momentos`
 --
 ALTER TABLE `receita_momentos`
   ADD PRIMARY KEY (`receita_momentos_id`),
@@ -2407,27 +3044,27 @@ ALTER TABLE `receita_momentos`
   ADD KEY `fk_receita_momentos_receita1_idx` (`receita_id`);
 
 --
--- Indexes for table `receita_nivel`
+-- Índices para tabela `receita_nivel`
 --
 ALTER TABLE `receita_nivel`
   ADD PRIMARY KEY (`receita_nivel_id`);
 
 --
--- Indexes for table `receita_passos`
+-- Índices para tabela `receita_passos`
 --
 ALTER TABLE `receita_passos`
   ADD PRIMARY KEY (`receita_passos_id`),
   ADD KEY `fk_receita_passos_receita1_idx` (`receita_id`);
 
 --
--- Indexes for table `receita_val_nutricional`
+-- Índices para tabela `receita_val_nutricional`
 --
 ALTER TABLE `receita_val_nutricional`
   ADD PRIMARY KEY (`receita_val_nutricional_id`),
   ADD KEY `fk_receita_val_nutricional_receita1_idx` (`receita_id`);
 
 --
--- Indexes for table `udm_receita`
+-- Índices para tabela `udm_receita`
 --
 ALTER TABLE `udm_receita`
   ADD PRIMARY KEY (`udm_receita_id`),
@@ -2435,14 +3072,14 @@ ALTER TABLE `udm_receita`
   ADD KEY `fk_udm_receita_receita1_idx` (`receita_id`);
 
 --
--- Indexes for table `user_book`
+-- Índices para tabela `user_book`
 --
 ALTER TABLE `user_book`
   ADD PRIMARY KEY (`user_book_id`),
   ADD KEY `fk_user_book_rec_usuario1_idx` (`usuario_id`);
 
 --
--- Indexes for table `user_book_rec`
+-- Índices para tabela `user_book_rec`
 --
 ALTER TABLE `user_book_rec`
   ADD PRIMARY KEY (`user_book_rec_id`),
@@ -2450,21 +3087,21 @@ ALTER TABLE `user_book_rec`
   ADD KEY `fk_user_book_rec_receita1_idx` (`receita_receita_id`);
 
 --
--- Indexes for table `user_dia`
+-- Índices para tabela `user_dia`
 --
 ALTER TABLE `user_dia`
   ADD PRIMARY KEY (`user_dia_id`),
   ADD KEY `fk_user_dia_usuario1_idx` (`usuario_id`);
 
 --
--- Indexes for table `user_dia_macros`
+-- Índices para tabela `user_dia_macros`
 --
 ALTER TABLE `user_dia_macros`
   ADD PRIMARY KEY (`user_dia_macros_id`),
   ADD KEY `fk_user_dia_macros_user_dia1_idx` (`user_dia_id`);
 
 --
--- Indexes for table `user_dia_momento`
+-- Índices para tabela `user_dia_momento`
 --
 ALTER TABLE `user_dia_momento`
   ADD PRIMARY KEY (`user_dia_momento_id`),
@@ -2472,21 +3109,21 @@ ALTER TABLE `user_dia_momento`
   ADD KEY `fk_user_dia_momento_user_dia1_idx` (`user_dia_id`);
 
 --
--- Indexes for table `user_dia_mood`
+-- Índices para tabela `user_dia_mood`
 --
 ALTER TABLE `user_dia_mood`
   ADD PRIMARY KEY (`user_dia_mood_id`),
   ADD KEY `fk_user_dia_mood_user_dia1_idx` (`user_dia_id`);
 
 --
--- Indexes for table `user_peso_historico`
+-- Índices para tabela `user_peso_historico`
 --
 ALTER TABLE `user_peso_historico`
   ADD PRIMARY KEY (`user_peso_historico_id`),
   ADD KEY `fk_user_peso_historico_usuario1_idx` (`usuario_usuario_id`);
 
 --
--- Indexes for table `user_rec_fav`
+-- Índices para tabela `user_rec_fav`
 --
 ALTER TABLE `user_rec_fav`
   ADD PRIMARY KEY (`urf_id`),
@@ -2494,212 +3131,213 @@ ALTER TABLE `user_rec_fav`
   ADD KEY `fk_user_receitas_favoritas_receita1_idx` (`receita_id`);
 
 --
--- Indexes for table `usuario`
+-- Índices para tabela `usuario`
 --
 ALTER TABLE `usuario`
-  ADD PRIMARY KEY (`usuario_id`);
+  ADD PRIMARY KEY (`usuario_id`),
+  ADD UNIQUE KEY `usuario_token_UNIQUE` (`usuario_token`);
 
 --
--- Indexes for table `usuario_configs_macros`
+-- Índices para tabela `usuario_configs_macros`
 --
 ALTER TABLE `usuario_configs_macros`
   ADD PRIMARY KEY (`usuario_configs_macros_id`),
   ADD KEY `fk_usuario_configs_macros_usuario1_idx` (`usuario_id`);
 
 --
--- Indexes for table `usuario_configs_mood`
+-- Índices para tabela `usuario_configs_mood`
 --
 ALTER TABLE `usuario_configs_mood`
   ADD PRIMARY KEY (`usuario_configs_mood_id`),
   ADD KEY `fk_usuario_configs_mood_usuario1_idx` (`usuario_id`);
 
 --
--- Indexes for table `usuario_configs_ref`
+-- Índices para tabela `usuario_configs_ref`
 --
 ALTER TABLE `usuario_configs_ref`
   ADD PRIMARY KEY (`usuario_configs_geral_id`),
   ADD KEY `fk_usuario_configs_geral_usuario1_idx` (`usuario_id`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT de tabelas despejadas
 --
 
 --
--- AUTO_INCREMENT for table `categoria_i`
+-- AUTO_INCREMENT de tabela `categoria_i`
 --
 ALTER TABLE `categoria_i`
   MODIFY `categoria_i_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
--- AUTO_INCREMENT for table `categoria_r`
+-- AUTO_INCREMENT de tabela `categoria_r`
 --
 ALTER TABLE `categoria_r`
-  MODIFY `categoria_r_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `categoria_r_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
--- AUTO_INCREMENT for table `ingredientes`
+-- AUTO_INCREMENT de tabela `ingredientes`
 --
 ALTER TABLE `ingredientes`
   MODIFY `ingredientes_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=598;
 
 --
--- AUTO_INCREMENT for table `ingrediente_categorias`
+-- AUTO_INCREMENT de tabela `ingrediente_categorias`
 --
 ALTER TABLE `ingrediente_categorias`
   MODIFY `ingrediente_categorias_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=598;
 
 --
--- AUTO_INCREMENT for table `ingrediente_val_nutricional`
+-- AUTO_INCREMENT de tabela `ingrediente_val_nutricional`
 --
 ALTER TABLE `ingrediente_val_nutricional`
   MODIFY `ingrediente_val_nutricional_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=598;
 
 --
--- AUTO_INCREMENT for table `momento`
+-- AUTO_INCREMENT de tabela `momento`
 --
 ALTER TABLE `momento`
   MODIFY `momento_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
--- AUTO_INCREMENT for table `paciente_profissional`
+-- AUTO_INCREMENT de tabela `paciente_profissional`
 --
 ALTER TABLE `paciente_profissional`
   MODIFY `paciente_profissional_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `receita`
+-- AUTO_INCREMENT de tabela `receita`
 --
 ALTER TABLE `receita`
-  MODIFY `receita_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `receita_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `receita_aval`
+-- AUTO_INCREMENT de tabela `receita_aval`
 --
 ALTER TABLE `receita_aval`
   MODIFY `receita_aval_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `receita_categorias`
+-- AUTO_INCREMENT de tabela `receita_categorias`
 --
 ALTER TABLE `receita_categorias`
-  MODIFY `receita_categorias_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `receita_categorias_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- AUTO_INCREMENT for table `receita_imagens`
+-- AUTO_INCREMENT de tabela `receita_imagens`
 --
 ALTER TABLE `receita_imagens`
-  MODIFY `receita_imagens_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `receita_imagens_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- AUTO_INCREMENT for table `receita_ingredientes`
+-- AUTO_INCREMENT de tabela `receita_ingredientes`
 --
 ALTER TABLE `receita_ingredientes`
-  MODIFY `receita_ingredientes_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `receita_ingredientes_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `receita_momentos`
+-- AUTO_INCREMENT de tabela `receita_momentos`
 --
 ALTER TABLE `receita_momentos`
-  MODIFY `receita_momentos_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `receita_momentos_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `receita_nivel`
+-- AUTO_INCREMENT de tabela `receita_nivel`
 --
 ALTER TABLE `receita_nivel`
-  MODIFY `receita_nivel_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `receita_nivel_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT for table `receita_passos`
+-- AUTO_INCREMENT de tabela `receita_passos`
 --
 ALTER TABLE `receita_passos`
-  MODIFY `receita_passos_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `receita_passos_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- AUTO_INCREMENT for table `receita_val_nutricional`
+-- AUTO_INCREMENT de tabela `receita_val_nutricional`
 --
 ALTER TABLE `receita_val_nutricional`
-  MODIFY `receita_val_nutricional_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `receita_val_nutricional_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `udm_receita`
+-- AUTO_INCREMENT de tabela `udm_receita`
 --
 ALTER TABLE `udm_receita`
   MODIFY `udm_receita_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `user_book`
+-- AUTO_INCREMENT de tabela `user_book`
 --
 ALTER TABLE `user_book`
   MODIFY `user_book_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `user_book_rec`
+-- AUTO_INCREMENT de tabela `user_book_rec`
 --
 ALTER TABLE `user_book_rec`
   MODIFY `user_book_rec_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `user_dia`
+-- AUTO_INCREMENT de tabela `user_dia`
 --
 ALTER TABLE `user_dia`
   MODIFY `user_dia_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `user_dia_macros`
+-- AUTO_INCREMENT de tabela `user_dia_macros`
 --
 ALTER TABLE `user_dia_macros`
   MODIFY `user_dia_macros_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `user_dia_momento`
+-- AUTO_INCREMENT de tabela `user_dia_momento`
 --
 ALTER TABLE `user_dia_momento`
   MODIFY `user_dia_momento_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `user_dia_mood`
+-- AUTO_INCREMENT de tabela `user_dia_mood`
 --
 ALTER TABLE `user_dia_mood`
   MODIFY `user_dia_mood_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `user_peso_historico`
+-- AUTO_INCREMENT de tabela `user_peso_historico`
 --
 ALTER TABLE `user_peso_historico`
   MODIFY `user_peso_historico_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `user_rec_fav`
+-- AUTO_INCREMENT de tabela `user_rec_fav`
 --
 ALTER TABLE `user_rec_fav`
   MODIFY `urf_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `usuario`
+-- AUTO_INCREMENT de tabela `usuario`
 --
 ALTER TABLE `usuario`
   MODIFY `usuario_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `usuario_configs_macros`
+-- AUTO_INCREMENT de tabela `usuario_configs_macros`
 --
 ALTER TABLE `usuario_configs_macros`
   MODIFY `usuario_configs_macros_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `usuario_configs_mood`
+-- AUTO_INCREMENT de tabela `usuario_configs_mood`
 --
 ALTER TABLE `usuario_configs_mood`
   MODIFY `usuario_configs_mood_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `usuario_configs_ref`
+-- AUTO_INCREMENT de tabela `usuario_configs_ref`
 --
 ALTER TABLE `usuario_configs_ref`
   MODIFY `usuario_configs_geral_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- Constraints for dumped tables
+-- Restrições para despejos de tabelas
 --
 
 --
@@ -2721,13 +3359,6 @@ ALTER TABLE `ingrediente_val_nutricional`
 ALTER TABLE `paciente_profissional`
   ADD CONSTRAINT `paciente_id` FOREIGN KEY (`paciente_id`) REFERENCES `usuario` (`usuario_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   ADD CONSTRAINT `profissional_id` FOREIGN KEY (`profissional_id`) REFERENCES `usuario` (`usuario_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Limitadores para a tabela `receita`
---
-ALTER TABLE `receita`
-  ADD CONSTRAINT `fk_receita_receita_nivel1` FOREIGN KEY (`nivel_receita_id`) REFERENCES `receita_nivel` (`receita_nivel_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_receita_usuario1` FOREIGN KEY (`usuario_id`) REFERENCES `usuario` (`usuario_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Limitadores para a tabela `receita_aval`
@@ -2796,18 +3427,6 @@ ALTER TABLE `user_book_rec`
   ADD CONSTRAINT `fk_user_book_rec_user_book1` FOREIGN KEY (`ub_id`) REFERENCES `user_book` (`user_book_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
--- Limitadores para a tabela `user_dia`
---
-ALTER TABLE `user_dia`
-  ADD CONSTRAINT `fk_user_dia_usuario1` FOREIGN KEY (`usuario_id`) REFERENCES `usuario` (`usuario_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Limitadores para a tabela `user_dia_macros`
---
-ALTER TABLE `user_dia_macros`
-  ADD CONSTRAINT `fk_user_dia_macros_user_dia1` FOREIGN KEY (`user_dia_id`) REFERENCES `user_dia` (`user_dia_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
 -- Limitadores para a tabela `user_dia_momento`
 --
 ALTER TABLE `user_dia_momento`
@@ -2821,35 +3440,11 @@ ALTER TABLE `user_dia_mood`
   ADD CONSTRAINT `fk_user_dia_mood_user_dia1` FOREIGN KEY (`user_dia_id`) REFERENCES `user_dia` (`user_dia_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
--- Limitadores para a tabela `user_peso_historico`
---
-ALTER TABLE `user_peso_historico`
-  ADD CONSTRAINT `fk_user_peso_historico_usuario1` FOREIGN KEY (`usuario_usuario_id`) REFERENCES `usuario` (`usuario_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
 -- Limitadores para a tabela `user_rec_fav`
 --
 ALTER TABLE `user_rec_fav`
   ADD CONSTRAINT `fk_user_receitas_favoritas_receita1` FOREIGN KEY (`receita_id`) REFERENCES `receita` (`receita_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   ADD CONSTRAINT `fk_user_receitas_favoritas_usuario1` FOREIGN KEY (`usuario_id`) REFERENCES `usuario` (`usuario_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Limitadores para a tabela `usuario_configs_macros`
---
-ALTER TABLE `usuario_configs_macros`
-  ADD CONSTRAINT `fk_usuario_configs_macros_usuario1` FOREIGN KEY (`usuario_id`) REFERENCES `usuario` (`usuario_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Limitadores para a tabela `usuario_configs_mood`
---
-ALTER TABLE `usuario_configs_mood`
-  ADD CONSTRAINT `fk_usuario_configs_mood_usuario1` FOREIGN KEY (`usuario_id`) REFERENCES `usuario` (`usuario_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Limitadores para a tabela `usuario_configs_ref`
---
-ALTER TABLE `usuario_configs_ref`
-  ADD CONSTRAINT `fk_usuario_configs_geral_usuario1` FOREIGN KEY (`usuario_id`) REFERENCES `usuario` (`usuario_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

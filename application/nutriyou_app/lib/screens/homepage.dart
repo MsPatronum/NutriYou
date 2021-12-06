@@ -125,7 +125,7 @@ _refreshAction() {
                                           imagem: "",
                                           ml: false,
                                           porcentagem: calculatePercentage(macrossnapshot.data.data.configCarbsdia, macrossnapshot.data.data.userDiaCarbs),
-                                          restante: subtraction(macrossnapshot.data.data.configCarbsdia, macrossnapshot.data.data.userDiaCarbs).toString(),
+                                          restante: subtraction(macrossnapshot.data.data.configCarbsdia, macrossnapshot.data.data.userDiaCarbs),
                                         ),
                                       ),
                                     ]

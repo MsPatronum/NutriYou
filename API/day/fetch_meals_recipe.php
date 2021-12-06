@@ -29,23 +29,27 @@
     $refeicao_cod = 1;*/
  
     //Fetching the selected record as per ID.
-    $stmt = $mysqli->prepare("SELECT v.receita_id, v.receita_nome, v.receita_kcal, v.categorias_receita FROM v_userdiameal v WHERE
+    $stmt = $mysqli->prepare("SELECT v.receita_id, v.udm_receita_id, v.receita_nome, v.receita_kcal, v.categorias_receita FROM v_userdiameal v WHERE
     v.usuario_id = ? AND v.user_dia_data = ? AND v.momento_id = ? ");
     $stmt->bind_param("sss", $user_id, $date, $refeicao_cod);
     
     if($stmt->execute()){
         $stmt->store_result();
         if($stmt->num_rows >= 1){
-            $stmt->bind_result($receita_id, $receita_nome, $receita_kcal, $categorias_receita);
+            $refeicao = [];
+            $inc = 0;
+            $stmt->bind_result($receita_id, $udm_receita_id, $receita_nome, $receita_kcal, $categorias_receita);
             $stmt->fetch();
 
             $stmt->execute();
             $result = $stmt->get_result();
             while ($row = $result->fetch_assoc()) {
-                $refeicao[] = array('receita_id'=>$receita_id,
-                     'receita_nome'=>$receita_nome,
-                     'receita_kcal'=>$receita_kcal,
-                     'refeicao_categorias'=>$categorias_receita);
+                $refeicao[] = array('receita_id'=>$row["receita_id"],
+                     'udm_receita_id' => $row['udm_receita_id'],
+                     'receita_nome'=>$row["receita_nome"],
+                     'receita_kcal'=>$row["receita_kcal"],
+                     'refeicao_categorias'=>$row["categorias_receita"]);
+                $inc++;
             }
             $response['error'] = false;
             $response['cod'] = 1;

@@ -1,19 +1,50 @@
+import 'dart:convert';
+
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
+import 'package:nutriyou_app/const.dart';
+import 'package:http/http.dart' as http;
+import 'package:nutriyou_app/models/recipeViewModel.dart';
 //import 'package:nutri_app/Widgets/WidgetStarRating.dart';
 
 class RecipeView extends StatefulWidget {
+  const RecipeView({Key key, this.idRefeicao, this.recipeView}) : super(key: key);
+
   @override
   _RecipeViewState createState() => _RecipeViewState();
+
+  final int idRefeicao;
+  final Future<RecipeView> recipeView;
 }
 
 class _RecipeViewState extends State<RecipeView> {
   bool like = false;
   bool dislike = false;
-  @override
 
+  var recipeviewlink = link('recipe/recipe_view.php');
+
+  Future<RecipeViewModel> fetchRecipe(int receita_id) async {
+
+    var data = {'receita_id': 1};
+
+    var response = await http.post(Uri.parse(recipeviewlink), body: json.encode(data));
+    if (response.statusCode == 200) {
+
+        final recipeView = recipeViewModelFromJson(response.body);
+        print(recipeView.imagens.last.receitaImagensPath + " length");
+        return recipeView;
+          
+         // return (itensRefeicao as Map);
+      }
+    else {
+      throw Exception('Failed to load data from Server.');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
 
     return Scaffold(
@@ -71,168 +102,235 @@ class _RecipeViewState extends State<RecipeView> {
       ),
       body: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(child: Text("Título da receita")),
-                  Center(child: Text("Subtitulo da Receita", ),),
-                  SizedBox(
-                    height: 16,
-                  ),
-                  IntrinsicHeight(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child:FutureBuilder<RecipeViewModel>(
+          future: fetchRecipe(1),
+            builder: (context, snapshot){
+              if(snapshot.hasData){
+                List<String> imageList = [linkImages('recipepics/rec1_pic1.jpg'), linkImages('recipepics/rec1_pic2.jpg')];
+              var infoReceita = snapshot.data.infoReceita;
+              var ingredientesReceita = snapshot.data.ingredientes;
+              var passosReceita = snapshot.data.passos;
+              var s = infoReceita.receitaTempoPreparo;
+              var porcao = infoReceita.receitaPorcoes > 1 ? ' porções' : ' porção';
+              TimeOfDay _startTime = TimeOfDay(hour:int.parse(s.split(":")[0]),minute: int.parse(s.split(":")[1]));
+              print (_startTime);
+              
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [                
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          children: [
-                            Text(
-                              "Rendimento",
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15
+                        Center(child: buildRecipeTitle(infoReceita.receitaNome)),
+                        Center(child: buildRecipeSubTitle(infoReceita.receitaDesc ),),
+                        SizedBox(
+                          height: 16,
+                        ),
+                        IntrinsicHeight(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                children: [
+                                  Text(
+                                    "Rendimento",
+                                    style: TextStyle(
+                                      color: Colors.grey.shade700,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15
+                                    ),
+                                  ),
+                                  Text(infoReceita.receitaPorcoes.toString() + porcao),
+                                ],
                               ),
-                            ),
-                            Text("10 porções"),
-                          ],
-                        ),
-                        VerticalDivider(
-                          color: Colors.teal,
-                          thickness: 2,
-                        ),
-                        Column(
-                          children: [
-                          Text(
-                          "Tempo de Preparo",
-                          style: TextStyle(
-                              color: Colors.grey.shade700,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15
+                              VerticalDivider(
+                                color: Colors.teal,
+                                thickness: 2,
+                              ),
+                              Column(
+                                children: [
+                                Text(
+                                  "Tempo de Preparo",
+                                  style: TextStyle(
+                                      color: Colors.grey.shade700,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15
+                                  ),
+                                ),
+                                Text(_startTime.hour.toString() + "h " + _startTime.minute.toString() + "m"),
+                                ],
+                              ),
+                              VerticalDivider(
+                                color: Colors.teal,
+                                thickness: 2,
+                              ),
+                              Column(
+                                children: [
+                                  Text(
+                                    "Avaliação",
+                                    style: TextStyle(
+                                    color: Colors.grey.shade700,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15
+                                  ),
+                                ),
+                                    /*StarDisplayWidget(
+                                      value: 4,
+                                      filledStar: Icon(Icons.star_rounded, color: AppColors.defaultGreen, size: 20,),
+                                      unfilledStar: Icon(Icons.star_border_rounded, color: AppColors.defaultGreen, size: 20,),
+                                    )*/
+                                ],
+                              )
+                            ],
                           ),
-                        ),
-                            Text("50 minutos"),
-                          ],
-                        ),
-                        VerticalDivider(
-                          color: Colors.teal,
-                          thickness: 2,
-                        ),
-                        Column(
-                          children: [
-                          Text(
-                          "Avaliação",
-                          style: TextStyle(
-                              color: Colors.grey.shade700,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15
-                          ),
-                        ),
-                            /*StarDisplayWidget(
-                              value: 4,
-                              filledStar: Icon(Icons.star_rounded, color: AppColors.defaultGreen, size: 20,),
-                              unfilledStar: Icon(Icons.star_border_rounded, color: AppColors.defaultGreen, size: 20,),
-                            )*/
-                          ],
                         )
                       ],
                     ),
-                  )
-                ],
-              ),
-            ),
-
-            SizedBox(
-              height: 26,
-            ),
-
-            Container(
-              height: 350,
-              padding: EdgeInsets.only(left: 16),
-              child: Stack(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Info. Nutricional'),
-                      buildNutrition(240, "Calorias", "Kcal"),
-                      SizedBox(
-                        height: 16,
-                      ),
-                      buildNutrition(11, "Carbs", "g"),
-                      SizedBox(
-                        height: 16,
-                      ),
-                      buildNutrition(10, "Proteina", "g"),
-                      SizedBox(
-                        height: 16,
-                      ),
-                      buildNutrition(10, "Gordura", "g"),
-                    ],
+                  ),                  
+                  SizedBox(
+                    height: 26,
                   ),
-
-                  Positioned(
-                    right: 0,
-                    child: Hero(
-                      tag: "assets/comida/frango.jpg",
-                      child: Container(
-                        height: 350,
-                        width: 220,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(20), topLeft: Radius.circular(20)),
-                          child: Image(
-                            image: AssetImage("assets/comida/linguica_ovo.jpg"),
-                            fit: BoxFit.cover,
+                  Container(
+                    height: 350,
+                    padding: EdgeInsets.only(left: 16),
+                    child: Stack(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            buildTitleText('Info. Nutricional'),
+                              buildNutrition(
+                                int.parse(infoReceita.energyKcal.toStringAsFixed(0)), 
+                                "Calorias", 
+                                "Kcal"
+                              ),
+                              SizedBox(
+                                height: 16,
+                              ),
+                              buildNutrition(
+                                int.parse(infoReceita.carbohydrateQtd.toStringAsFixed(0)), 
+                                "Carbs", 
+                                infoReceita.carbohydrateUnit
+                              ),
+                              SizedBox(
+                                height: 16,
+                              ),
+                              buildNutrition(
+                                int.parse(infoReceita.proteinQtd.toStringAsFixed(0)), 
+                                "Proteina", 
+                                infoReceita.proteinUnit
+                              ),
+                              SizedBox(
+                                height: 16,
+                              ),
+                              buildNutrition(
+                                int.parse(infoReceita.lipidQtd.toStringAsFixed(0)),  
+                                "Gordura", 
+                                infoReceita.lipidUnit
+                              ),
+                            ],
                           ),
-                        ),
+                          Positioned(
+                            right: 0,
+                            child: Container(
+                              height: 330,
+                              width: MediaQuery.of(context).size.width*0.5,
+                              margin: EdgeInsets.all(15),
+                              child: CarouselSlider.builder(
+                                itemCount: snapshot.data.imagens.length,
+                                options: CarouselOptions(
+                                  enlargeCenterPage: true,
+                                  disableCenter: false,
+                                  height: 350,
+                                  autoPlay: false,
+                                  reverse: false,
+                                  aspectRatio: 5.0,
+                                ),
+                                itemBuilder: (context, i, id){
+                                  List<Imagem> imagem = snapshot.data.imagens ?? [];
+                                  print(imagem[i].receitaImagensPath);
+                                  //for onTap to redirect to another screen
+                                  return ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Image.network(
+                                      linkImages(imagem[i].receitaImagensPath),
+                                    fit: BoxFit.cover,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),                            
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
+                    Padding(
+                      padding: EdgeInsets.only(left: 16, right: 16, bottom: 80, top: 25),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          buildTitleText('Ingredientes',),
+                          ListView.builder(
+                            itemCount: ingredientesReceita.length,
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemBuilder: (BuildContext context, int index){
+                              List<Ingrediente> ingrediente = ingredientesReceita ?? [];
+                              var qtd = ingredientesReceita.single.receitaIngredientesQtd * ingredientesReceita.single.ingredientesBaseQtd;
+                              return Container(
+                                width: MediaQuery.of(context).size.width,
+                                child: buildTextIngredient(
+                                  qtd.toString(), 
+                                  ingrediente[index].ingredientesBaseUnity, 
+                                  ingrediente[index].ingredientesDesc
+                                )
+                              );
+                            }
+                          ),
 
-            Padding(
-              padding: EdgeInsets.only(left: 16, right: 16, bottom: 80, top: 25),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                          SizedBox(height: 25,),
 
-                  Text('Ingredientes',),
-
-                  buildTextIngredient("2", "copo", "pecã cortada"),
-                  buildTextIngredient("1", "colher de sopa", "manteiga sem sal derretida"),
-                  buildTextIngredient("1/4",  "colher de chá", "sal, plus "),
-                  buildTextIngredient("3",  "colher de sopa", "suco de limão fresco"),
-                  buildTextIngredient("2",  "colher de sopa", "azeite"),
-                  buildTextIngredient("1/2",  "colher de chá", "mel"),
-
-                  SizedBox(height: 16,),
-
-                  Text('Modo de Preparo', ),
-
-                  buildTextStep("PASSO 1"),
-                  Text("In a medium bowl, mix all the marinade ingredients with some seasoning. Chop the chicken into bite-sized pieces and toss with the marinade. Cover and chill in the fridge for 1 hr or overnight.", ),
-
-                  buildTextStep("PASSO 2"),
-                  Text("In a large, heavy saucepan, heat the oil. Add the onion, garlic, green chilli, ginger and some seasoning. Fry on a medium heat for 10 mins or until soft.", ),
-
-                  buildTextStep("PASSO 3"),
-                  Text("Add the spices with the tomato purée, cook for a further 2 mins until fragrant, then add the stock and marinated chicken. Cook for 15 mins, then add any remaining marinade left in the bowl. Simmer for 5 mins, then sprinkle with the toasted almonds. Serve with rice, naan bread, chutney, coriander and lime wedges, if you like.", ),
-
-                ],
-              ),
-            ),
-
-          ],
-        ),
+                          buildTitleText('Modo de Preparo', ),
+                          
+                          ListView.builder(
+                            itemCount: passosReceita.length,
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemBuilder: (BuildContext context, int index){
+                              List<Passo> passos = passosReceita ?? [];
+                              return Container(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    buildTextStep("PASSO " + passos[index].rpNumero.toString()),
+                                    Text(
+                                      passos[index].rpDesc, 
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.normal,
+                                        color: Colors.grey.shade700, 
+                                      ),
+                                    ),
+                                    SizedBox(height: 15,)
+                                  ],
+                                ),
+                                  
+                              );
+                            }
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              }else{
+                return CircularProgressIndicator();
+              }
+            }
+          ),
       ),
     );
   }
@@ -368,20 +466,20 @@ buildTextIngredient(String qtd, String medida, String nome){
           ),
           margin: EdgeInsets.only(right: 15),
         ),
-        Text(
-          medida + " ",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey.shade700,
-          ),
-        ),
-        Text(
-          nome,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.normal,
-            color: Colors.grey.shade700,
+        Expanded(child: 
+        RichText(
+          text: TextSpan(
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.normal,
+              color: Colors.grey.shade700,
+            ),
+            children: [
+              TextSpan(text: medida),
+              TextSpan(text: ' de '),
+              TextSpan(text: nome)
+            ]
+          )
           ),
         ),
       ],
@@ -417,6 +515,20 @@ buildRecipeTitle(String text){
   );
 }
 
+buildTitleText(String text){
+  return Padding(
+    padding: EdgeInsets.only(bottom: 8),
+    child: Text(
+      text,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+  );
+}
+
 buildRecipeSubTitle(String text){
   return Padding(
     padding: EdgeInsets.only(bottom: 16),
@@ -424,7 +536,7 @@ buildRecipeSubTitle(String text){
       text,
       style: TextStyle(
         fontSize: 16,
-        color: Colors.grey.shade400,
+        color: Colors.grey.shade600,
       ),
     ),
   );

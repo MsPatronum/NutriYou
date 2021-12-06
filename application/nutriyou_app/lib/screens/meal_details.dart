@@ -341,13 +341,15 @@ class _MealDetailState extends State<MealDetail> {
                                     itemCount: data.length,
                                     scrollDirection: Axis.vertical,
                                     itemBuilder: (BuildContext context, int index) {
-                                      return WidgetRefeicao_MealDetails(
-                                            NomeRefeicao: data[index].receitaNome,
-                                            TipoAlimento: "",
-                                            CodRefeicao: data[index].receitaId,
+                                      return WidgetReceicao_MealDetails(
+                                            nomeReceita: data[index].receitaNome,
+                                            tipoAlimento: "",
+                                            codReceita: data[index].receitaId,
+                                            udmId: data[index].udmId,
                                             kCal: data[index].receitaKcal.toString(),
-                                            DelBtn: true, 
-                                            Dieta: data[index].refeicaoCategorias,
+                                            codRefeicao: widget.idRefeicao,
+                                            delBtn: true, 
+                                            dieta: data[index].refeicaoCategorias,
                                       );
                                     }
                                 )

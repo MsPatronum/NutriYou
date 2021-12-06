@@ -39,18 +39,21 @@ class ItensRefeicao {
 class Data {
     Data({
         this.receitaId,
+        this.udmId,
         this.receitaNome,
         this.receitaKcal,
         this.refeicaoCategorias
     });
 
     final int receitaId;
+    final int udmId;
     final String receitaNome;
     final double receitaKcal;
     final String refeicaoCategorias;
 
     factory Data.fromJson(Map<String, dynamic> json) => Data(
         receitaId: json["receita_id"] == null ? null : json["receita_id"],
+        udmId : json["udm_receita_id"] == null ? null : json["udm_receita_id"],
         receitaNome: json["receita_nome"] == null ? null : json["receita_nome"],
         receitaKcal: json["receita_kcal"] == null ? null : json["receita_kcal"].toDouble(),
         refeicaoCategorias : json["refeicao_categorias"] == null ? null : json["refeicao_categorias"],
@@ -58,6 +61,7 @@ class Data {
 
     Map<String, dynamic> toJson() => {
         "receita_id": receitaId == null ? null : receitaId,
+        "udm_receita_id" : udmId == null ? null : udmId,
         "receita_nome": receitaNome == null ? null : receitaNome,
         "receita_kcal": receitaKcal == null ? null : receitaKcal,
         "refeicao_categorias": refeicaoCategorias == null ? null : refeicaoCategorias

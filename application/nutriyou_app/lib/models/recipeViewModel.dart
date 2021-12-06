@@ -1,21 +1,22 @@
 // To parse this JSON data, do
 //
-//     final recipeView = recipeViewFromJson(jsonString);
+//     final recipeViewModel = recipeViewModelFromJson(jsonString);
 
 import 'dart:convert';
 
-RecipeView recipeViewFromJson(String str) => RecipeView.fromJson(json.decode(str));
+RecipeViewModel recipeViewModelFromJson(String str) => RecipeViewModel.fromJson(json.decode(str));
 
-String recipeViewToJson(RecipeView data) => json.encode(data.toJson());
+String recipeViewModelToJson(RecipeViewModel data) => json.encode(data.toJson());
 
-class RecipeView {
-    RecipeView({
+class RecipeViewModel {
+    RecipeViewModel({
         this.error,
         this.cod,
         this.message,
         this.infoReceita,
         this.passos,
         this.ingredientes,
+        this.imagens,
     });
 
     bool error;
@@ -24,14 +25,16 @@ class RecipeView {
     InfoReceita infoReceita;
     List<Passo> passos;
     List<Ingrediente> ingredientes;
+    List<Imagem> imagens;
 
-    factory RecipeView.fromJson(Map<String, dynamic> json) => RecipeView(
+    factory RecipeViewModel.fromJson(Map<String, dynamic> json) => RecipeViewModel(
         error: json["error"] == null ? null : json["error"],
         cod: json["cod"] == null ? null : json["cod"],
         message: json["message"] == null ? null : json["message"],
         infoReceita: json["info_receita"] == null ? null : InfoReceita.fromJson(json["info_receita"]),
         passos: json["passos"] == null ? null : List<Passo>.from(json["passos"].map((x) => Passo.fromJson(x))),
         ingredientes: json["ingredientes"] == null ? null : List<Ingrediente>.from(json["ingredientes"].map((x) => Ingrediente.fromJson(x))),
+        imagens: json["imagens"] == null ? null : List<Imagem>.from(json["imagens"].map((x) => Imagem.fromJson(x))),
     );
 
     Map<String, dynamic> toJson() => {
@@ -41,6 +44,23 @@ class RecipeView {
         "info_receita": infoReceita == null ? null : infoReceita.toJson(),
         "passos": passos == null ? null : List<dynamic>.from(passos.map((x) => x.toJson())),
         "ingredientes": ingredientes == null ? null : List<dynamic>.from(ingredientes.map((x) => x.toJson())),
+        "imagens": imagens == null ? null : List<dynamic>.from(imagens.map((x) => x.toJson())),
+    };
+}
+
+class Imagem {
+    Imagem({
+        this.receitaImagensPath,
+    });
+
+    String receitaImagensPath;
+
+    factory Imagem.fromJson(Map<String, dynamic> json) => Imagem(
+        receitaImagensPath: json["receita_imagens_path"] == null ? null : json["receita_imagens_path"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "receita_imagens_path": receitaImagensPath == null ? null : receitaImagensPath,
     };
 }
 
@@ -49,6 +69,7 @@ class InfoReceita {
         this.receitaId,
         this.receitaNome,
         this.receitaDesc,
+        this.receitaPorcoes,
         this.receitaTempoPreparo,
         this.rnNivel,
         this.momento,
@@ -69,6 +90,7 @@ class InfoReceita {
     int receitaId;
     String receitaNome;
     String receitaDesc;
+    int receitaPorcoes;
     String receitaTempoPreparo;
     String rnNivel;
     String momento;
@@ -89,6 +111,7 @@ class InfoReceita {
         receitaId: json["receita_id"] == null ? null : json["receita_id"],
         receitaNome: json["receita_nome"] == null ? null : json["receita_nome"],
         receitaDesc: json["receita_desc"] == null ? null : json["receita_desc"],
+        receitaPorcoes: json["receita_porcoes"] == null ? null : json["receita_porcoes"],
         receitaTempoPreparo: json["receita_tempo_preparo"] == null ? null : json["receita_tempo_preparo"],
         rnNivel: json["rn_nivel"] == null ? null : json["rn_nivel"],
         momento: json["momento"] == null ? null : json["momento"],
@@ -110,6 +133,7 @@ class InfoReceita {
         "receita_id": receitaId == null ? null : receitaId,
         "receita_nome": receitaNome == null ? null : receitaNome,
         "receita_desc": receitaDesc == null ? null : receitaDesc,
+        "receita_porcoes": receitaPorcoes == null ? null : receitaPorcoes,
         "receita_tempo_preparo": receitaTempoPreparo == null ? null : receitaTempoPreparo,
         "rn_nivel": rnNivel == null ? null : rnNivel,
         "momento": momento == null ? null : momento,
@@ -139,28 +163,28 @@ class Ingrediente {
     });
 
     int receitaId;
-    dynamic ingredientesId;
-    dynamic ingredientesDesc;
-    dynamic receitaIngredientesQtd;
-    dynamic ingredientesBaseQtd;
-    dynamic ingredientesBaseUnity;
+    int ingredientesId;
+    String ingredientesDesc;
+    int receitaIngredientesQtd;
+    int ingredientesBaseQtd;
+    String ingredientesBaseUnity;
 
     factory Ingrediente.fromJson(Map<String, dynamic> json) => Ingrediente(
         receitaId: json["receita_id"] == null ? null : json["receita_id"],
-        ingredientesId: json["ingredientes_id"],
-        ingredientesDesc: json["ingredientes_desc"],
-        receitaIngredientesQtd: json["receita_ingredientes_qtd"],
-        ingredientesBaseQtd: json["ingredientes_base_qtd"],
-        ingredientesBaseUnity: json["ingredientes_base_unity"],
+        ingredientesId: json["ingredientes_id"] == null ? null : json["ingredientes_id"],
+        ingredientesDesc: json["ingredientes_desc"] == null ? null : json["ingredientes_desc"],
+        receitaIngredientesQtd: json["receita_ingredientes_qtd"] == null ? null : json["receita_ingredientes_qtd"],
+        ingredientesBaseQtd: json["ingredientes_base_qtd"] == null ? null : json["ingredientes_base_qtd"],
+        ingredientesBaseUnity: json["ingredientes_base_unity"] == null ? null : json["ingredientes_base_unity"],
     );
 
     Map<String, dynamic> toJson() => {
         "receita_id": receitaId == null ? null : receitaId,
-        "ingredientes_id": ingredientesId,
-        "ingredientes_desc": ingredientesDesc,
-        "receita_ingredientes_qtd": receitaIngredientesQtd,
-        "ingredientes_base_qtd": ingredientesBaseQtd,
-        "ingredientes_base_unity": ingredientesBaseUnity,
+        "ingredientes_id": ingredientesId == null ? null : ingredientesId,
+        "ingredientes_desc": ingredientesDesc == null ? null : ingredientesDesc,
+        "receita_ingredientes_qtd": receitaIngredientesQtd == null ? null : receitaIngredientesQtd,
+        "ingredientes_base_qtd": ingredientesBaseQtd == null ? null : ingredientesBaseQtd,
+        "ingredientes_base_unity": ingredientesBaseUnity == null ? null : ingredientesBaseUnity,
     };
 }
 
@@ -170,16 +194,16 @@ class Passo {
         this.rpDesc,
     });
 
-    dynamic rpNumero;
-    dynamic rpDesc;
+    int rpNumero;
+    String rpDesc;
 
     factory Passo.fromJson(Map<String, dynamic> json) => Passo(
-        rpNumero: json["rp_numero"],
-        rpDesc: json["rp_desc"],
+        rpNumero: json["rp_numero"] == null ? null : json["rp_numero"],
+        rpDesc: json["rp_desc"] == null ? null : json["rp_desc"],
     );
 
     Map<String, dynamic> toJson() => {
-        "rp_numero": rpNumero,
-        "rp_desc": rpDesc,
+        "rp_numero": rpNumero == null ? null : rpNumero,
+        "rp_desc": rpDesc == null ? null : rpDesc,
     };
 }

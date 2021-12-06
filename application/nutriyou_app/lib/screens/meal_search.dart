@@ -154,13 +154,13 @@ class _MealSearchState extends State<MealSearch> {
                                   });
 
                                 },
-                                child: Container(child: WidgetRefeicao_MealDetails(
-                                  NomeRefeicao: snapshotMealSearch.data[index].receitaNome.toString(),
-                                  TipoAlimento: "Tempo " + snapshotMealSearch.data[index].receitaTempoPrep.toString(),
-                                  CodRefeicao: snapshotMealSearch.data[index].receitaId.toInt(),
+                                child: Container(child: WidgetReceicao_MealDetails(
+                                  nomeReceita: snapshotMealSearch.data[index].receitaNome.toString(),
+                                  tipoAlimento: "Tempo " + snapshotMealSearch.data[index].receitaTempoPrep.toString(),
+                                  codReceita: snapshotMealSearch.data[index].receitaId.toInt(),
                                   kCal:  snapshotMealSearch.data[index].receitaKcal.toString(),
-                                  Dieta: snapshotMealSearch.data[index].receitaNivel,
-                                  DelBtn: false,
+                                  dieta: snapshotMealSearch.data[index].receitaNivel,
+                                  delBtn: false,
                                 )),
                               );
                             }

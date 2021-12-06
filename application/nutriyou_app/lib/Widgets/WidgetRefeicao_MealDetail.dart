@@ -1,24 +1,60 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
 import 'package:nutriyou_app/const.dart';
 import 'package:nutriyou_app/screens/recipe_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class WidgetRefeicao_MealDetails extends StatelessWidget {
-  final String NomeRefeicao;
-  final int CodRefeicao;
-  final bool DelBtn;
-  final String TipoAlimento;
-  final String Dieta;
+class WidgetReceicao_MealDetails extends StatefulWidget {
+  final String nomeReceita;
+  final int codReceita;
+  final int udmId;
+  final int codRefeicao;
+  final bool delBtn;
+  final String tipoAlimento;
+  final String dieta;
   final String kCal;
+  const WidgetReceicao_MealDetails({ 
+  this.nomeReceita, 
+  this.codReceita, 
+  this.udmId,
+  this.codRefeicao, 
+  this.delBtn, 
+  this.tipoAlimento, 
+  this.dieta, 
+  this.kCal });
 
-  WidgetRefeicao_MealDetails({
-    @required this.CodRefeicao,
-    @required this.NomeRefeicao,
-    @required this.DelBtn,
-    @required this.TipoAlimento,
-    @required this.Dieta,
-    @required this.kCal,
-    });
+  @override
+  _WidgetReceicao_MealDetailsState createState() => _WidgetReceicao_MealDetailsState();
+}
+
+
+
+  Future removeOfMeal(int refeicaoId, int codReceita, int udmId) async {
+    var url_removereceita = link('day/remove_recipeofmeal.php');
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('id');
+    String datem = DateFormat("yyyy-MM-dd").format(DateTime.now().toUtc());
+
+
+    // Navigator.pop(context);
+
+    var data = {'user_id' : userId, 'refeicao_id' : refeicaoId, 'udmId': udmId, 'cod_receita': codReceita, 'data': datem};
+    print(data);
+
+    var response = await http.post(Uri.parse(url_removereceita), body: json.encode(data));
+    print(response.body);
+
+    return _returnFlutterToast();
+
+  }
+
+class _WidgetReceicao_MealDetailsState extends State<WidgetReceicao_MealDetails> {
 
   @override
   Widget build(BuildContext context) {
@@ -40,27 +76,6 @@ class WidgetRefeicao_MealDetails extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Container(
-                  decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(15),
-                          topLeft: Radius.circular(15)
-                      ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(15),
-                        topLeft: Radius.circular(15)
-                    ),
-                    child: Image(
-                      image: AssetImage("images/cafemanha.png"),
-                      width: 80,
-                      height: 100,
-                      fit: BoxFit.fitHeight,
-                    ),
-                  )
-              ),
               Expanded(
                 flex: 20,
                 child: Container(
@@ -70,7 +85,7 @@ class WidgetRefeicao_MealDetails extends StatelessWidget {
                         bottomLeft: Radius.circular(15))
                   ),
                     padding: EdgeInsets.only(top: 10, bottom: 10),
-                    margin: EdgeInsets.only(left: 10),
+                    margin: EdgeInsets.only(left: 20),
                     child: Stack(
                       children: [
                         Container(
@@ -80,7 +95,7 @@ class WidgetRefeicao_MealDetails extends StatelessWidget {
                               text: TextSpan(
                                   style: TextStyle(
                                       color: Colors.black, fontSize: 20),
-                                  text: NomeRefeicao),
+                                  text: widget.nomeReceita),
                             )
                         ),
                         Spacer(),
@@ -102,7 +117,7 @@ class WidgetRefeicao_MealDetails extends StatelessWidget {
                                               color: Colors.grey.shade800,
                                               fontWeight: FontWeight.w700
                                             ),
-                                            text: Dieta,
+                                            text: widget.dieta,
                                           )
                                       ),
                                     ),
@@ -123,7 +138,7 @@ class WidgetRefeicao_MealDetails extends StatelessWidget {
                                               color: Colors.grey.shade800,
                                               fontWeight: FontWeight.w700
                                             ),
-                                            text: transformToNoDecimal(kCal.toString())+"kcal",
+                                            text: transformToNoDecimal(widget.kCal.toString())+"kcal",
                                           )
                                       ),
                                     ),
@@ -149,12 +164,12 @@ class WidgetRefeicao_MealDetails extends StatelessWidget {
                   icon: Icon(Icons.remove_red_eye_rounded),
                   color: Colors.grey.shade700,
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) =>  RecipeView()));
+                    Navigator.push(context, MaterialPageRoute(builder: (context) =>  RecipeView(idRefeicao: widget.codReceita,)));
                     },
                 ),
               ),
               Visibility(
-                visible: DelBtn,
+                visible: widget.delBtn,
                 child: Container(
                   transformAlignment: Alignment.center,
                   margin: EdgeInsets.only(left: 5, right: 5),
@@ -166,7 +181,12 @@ class WidgetRefeicao_MealDetails extends StatelessWidget {
                   child: IconButton(
                     icon: Icon(Icons.delete_rounded),
                     color: Colors.pink.shade100,
-                    onPressed: () {},
+                    onPressed: (){
+                        setState(() {
+                            removeOfMeal(widget.codRefeicao, widget.codReceita, widget.udmId);
+                          }
+                        );
+                      },
                   ),
                 ),
               )
@@ -175,4 +195,14 @@ class WidgetRefeicao_MealDetails extends StatelessWidget {
         )
     );
   }
+}
+
+Future _returnFlutterToast() {
+  return Fluttertoast.showToast(
+      msg: "Receita removida da sua refeição com sucesso!",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+      backgroundColor: Colors.teal.shade50,
+      textColor: Colors.teal
+  );
 }

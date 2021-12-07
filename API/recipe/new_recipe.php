@@ -7,7 +7,7 @@
 	
 	//
 	for ($i = 0; $i < count($keys); $i++){
-		if(!isset($_POST[$keys[$i]]))
+		if(!isset($obj[$keys[$i]]))
 		 {
 			  $response['error'] = true;
 				$response['message'] = 'Required Filed Missed';
@@ -17,14 +17,14 @@
 	
 	}
 	
-	$nome = $_POST['receita_nome'];
-	$descricao = $_POST['receita_desc'];
-	$nivel = $_POST['nivel_receita_id'];
-	$tempo_preparo = $_POST['receita_tempo_preparo'];
-	$porcoes = $_POST['receita_porcoes'];
-	$usuario_id = $_POST['usuario_id'];
-	$modo = $_POST['recita_modo'];
-	$status = $_POST['receita_status'];
+	$nome = $obj['receita_nome'];
+	$descricao = $obj['receita_desc'];
+	$nivel = $obj['nivel_receita_id'];
+	$tempo_preparo = $obj['receita_tempo_preparo'];
+	$porcoes = $obj['receita_porcoes'];
+	$usuario_id = $obj['usuario_id'];
+	$modo = $obj['receita_modo'];
+	$status = $obj['receita_status'];
 	
 	
 	// DADOS PARA TESTE

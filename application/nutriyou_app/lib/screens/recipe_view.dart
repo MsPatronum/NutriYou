@@ -9,7 +9,7 @@ import 'package:nutriyou_app/app_colors.dart';
 import 'package:nutriyou_app/const.dart';
 import 'package:http/http.dart' as http;
 import 'package:nutriyou_app/models/recipeViewModel.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+//import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 

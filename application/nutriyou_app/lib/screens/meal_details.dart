@@ -69,7 +69,7 @@ class _MealDetailState extends State<MealDetail> {
     }
   }
   Future<ItensRefeicaoMessage> fetchMealDetails(int refeicaoCod, DateTime date) async {
-
+    
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final userId = prefs.getInt('id');
 
@@ -109,7 +109,14 @@ class _MealDetailState extends State<MealDetail> {
             ),
           ),
           onPressed: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => new AddRecipe())
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                settings: RouteSettings(name: AddRecipeRoute),
+                builder: (BuildContext context) {
+                  return new AddRecipe();
+                },
+              ),
             );
           },
           backgroundColor: AppColors.defaultGreen,

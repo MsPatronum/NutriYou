@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:nutriyou_app/const.dart';
+import 'package:nutriyou_app/routing_constants.dart';
 import 'package:nutriyou_app/screens/meal_details.dart';
 
 class WidgetRefeicao extends StatefulWidget {
@@ -89,6 +90,22 @@ class _WidgetRefeicaoState extends State<WidgetRefeicao> {
                         ),
                           onPressed: () {
                             setState(() {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  settings: RouteSettings(name: MealsDetailsRoute),
+                                  builder: (BuildContext context) {
+                                    return new MealDetail(
+                                      nomeRefeicao: widget.nomeRefeicao,
+                                      imagem: widget.imagem,
+                                      idRefeicao: widget.idRefeicao,
+                                      userId: widget.userId,
+                                      data: widget.date,
+                                      corFundoIcon: widget.corFundoIcon,
+                                    );
+                                  },
+                                ),
+                              );/*
                               Navigator.push(context, MaterialPageRoute(builder: (context) => new MealDetail(
                                 nomeRefeicao: widget.nomeRefeicao,
                                 imagem: widget.imagem,
@@ -96,7 +113,7 @@ class _WidgetRefeicaoState extends State<WidgetRefeicao> {
                                 userId: widget.userId,
                                 data: widget.date,
                                 corFundoIcon: widget.corFundoIcon,
-                              )));
+                              )));*/
                             });
                           },
                           child: Text(

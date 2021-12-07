@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:nutriyou_app/const.dart';
 import 'package:nutriyou_app/models/loginModel.dart';
+import 'package:nutriyou_app/screens/homepage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nutriyou_app/routing_constants.dart';
 import 'package:nutriyou_app/screens/FormValidator.dart';
@@ -71,6 +72,15 @@ Future<LoginMessage> userLogin() async{
   
       // Navigate to Profile Screen & Sending Email to Next Screen.
       Navigator.pushNamed(context, HomeViewRoute);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          settings: RouteSettings(name: HomeViewRoute),
+          builder: (BuildContext context) {
+            return new HomeView();
+          },
+        ),
+      );
     }else{
   
       // If Email or Password did not Matched.
@@ -236,6 +246,7 @@ Future<LoginMessage> userLogin() async{
         ),
         new TextButton(
           onPressed: (){
+            
             Navigator.pushNamed(context, RegisterViewRoute);
           },
           child: Text('Novo aqui? Crie uma conta',

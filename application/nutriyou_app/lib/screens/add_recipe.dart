@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:nutriyou_app/const.dart';
 import 'package:nutriyou_app/models/recipeAddModel.dart';
+import 'package:nutriyou_app/routing_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddRecipe extends StatefulWidget {
@@ -61,9 +62,9 @@ class _AddRecipeState extends State<AddRecipe> {
     var response = await  http.post(url, body: json.encode(data));
     
     print(data);
-    print(response.body);
+    var message = recipeAddFromJson(response.body);
 
-
+    prefs.setInt('receita_id', message.data.receitaId);
 
   }
 
@@ -264,7 +265,10 @@ class _AddRecipeState extends State<AddRecipe> {
                             shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
                             padding: MaterialStateProperty.all(EdgeInsets.all(12))),
                             onPressed: () {
+                              //print(ModalRoute.of(context).settings.name);
                               addRecipe();
+
+                              //Navigator.of(context).popUntil(ModalRoute.withName(HomeViewRoute));
                             },
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-var constUrl = '192.168.1.124';
+var constUrl = '172.17.208.1';
 
 link(String page){
   return ('http://'+ constUrl +'/NutriYou/API/'+page);

@@ -12,7 +12,8 @@
 
  	}else{
  		$CheckSQL = "
- 		SELECT 	v.ingredientes_desc,
+ 		SELECT 	v.ingredientes_id,
+ 				v.ingredientes_desc,
 			    v.ingredientes_base_qtd,
 			    v.ingredientes_base_unity,
 			    v.humidity_qtd,
@@ -28,7 +29,7 @@
 			    v.energy_kcal,
 			    v.energy_kj
 		FROM v_ingredientes v
-		where v.ingredientes_desc like '%$search_query%' limit 1";
+		where v.ingredientes_desc like '%$search_query%' ";
 
 	 	$result = $mysqli->query($CheckSQL);
 

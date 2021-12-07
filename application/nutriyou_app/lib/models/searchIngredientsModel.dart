@@ -28,13 +28,13 @@ class IngredienteModel {
     });
 
     String ingredientesDesc;
-    int ingredientesBaseQtd;
+    double ingredientesBaseQtd;
     String ingredientesBaseUnity;
     double humidityQtd;
     String humidityUnit;
     double proteinQtd;
     String proteinUnit;
-    int lipidQtd;
+    double lipidQtd;
     String lipidUnit;
     double carbohydrateQtd;
     String carbohydrateUnit;
@@ -45,13 +45,13 @@ class IngredienteModel {
 
     factory IngredienteModel.fromJson(Map<String, dynamic> json) => IngredienteModel(
         ingredientesDesc: json["ingredientes_desc"] == null ? null : json["ingredientes_desc"],
-        ingredientesBaseQtd: json["ingredientes_base_qtd"] == null ? null : json["ingredientes_base_qtd"],
+        ingredientesBaseQtd: json["ingredientes_base_qtd"] == null ? null : json["ingredientes_base_qtd"].toDouble(),
         ingredientesBaseUnity: json["ingredientes_base_unity"] == null ? null : json["ingredientes_base_unity"],
         humidityQtd: json["humidity_qtd"] == null ? null : json["humidity_qtd"].toDouble(),
         humidityUnit: json["humidity_unit"] == null ? null : json["humidity_unit"],
         proteinQtd: json["protein_qtd"] == null ? null : json["protein_qtd"].toDouble(),
         proteinUnit: json["protein_unit"] == null ? null : json["protein_unit"],
-        lipidQtd: json["lipid_qtd"] == null ? null : json["lipid_qtd"],
+        lipidQtd: json["lipid_qtd"] == null ? null : json["lipid_qtd"].toDouble(),
         lipidUnit: json["lipid_unit"] == null ? null : json["lipid_unit"],
         carbohydrateQtd: json["carbohydrate_qtd"] == null ? null : json["carbohydrate_qtd"].toDouble(),
         carbohydrateUnit: json["carbohydrate_unit"] == null ? null : json["carbohydrate_unit"],
@@ -79,4 +79,3 @@ class IngredienteModel {
         "energy_kj": energyKj == null ? null : energyKj,
     };
 }
-s

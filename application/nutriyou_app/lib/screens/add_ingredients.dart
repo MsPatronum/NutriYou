@@ -28,6 +28,8 @@ class _IngredientAddState extends State<IngredientAdd> {
 
   Future<List<IngredienteModel>> searchIngredients(searchQuery) async {
 
+    
+
     var data = {'search_query' : searchQuery};
     
     var response = await http.post(Uri.parse(url_mealsearch), body: json.encode(data));
@@ -39,6 +41,10 @@ class _IngredientAddState extends State<IngredientAdd> {
         final List ingredienteModel = List<IngredienteModel>.from(json.decode(response.body).map((x) => IngredienteModel.fromJson(x)));
         
         print(ingredienteModel.first.ingredientesDesc.toString() + "teste");
+        int  _maxItems = ingredienteModel.length;
+        int  _numItemsPage = 10;
+
+
         return ingredienteModel;
 
       }
@@ -109,6 +115,7 @@ class _IngredientAddState extends State<IngredientAdd> {
                       )
                   );
                 }else if(snapshot.hasData){
+                  var data = snapshot.data;
                   print(snapshot.data.first.ingredientesDesc.toString());
                   if(snapshot.data.first.ingredientesDesc == null){
                       
@@ -117,6 +124,7 @@ class _IngredientAddState extends State<IngredientAdd> {
                         height: MediaQuery.of(context).size.height,
                         child: ListView.builder(
                             itemCount: snapshot.data.length,
+                            physics: BouncingScrollPhysics(),
                             scrollDirection: Axis.vertical,
                             itemBuilder: (BuildContext context, int index) {
                               return GestureDetector(
@@ -128,7 +136,15 @@ class _IngredientAddState extends State<IngredientAdd> {
                                 },
                                 child: 
                                 Container(
-                                  child: Text(snapshot.data[index].ingredientesDesc)
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: MediaQuery.of(context).size.width * 0.75,
+                                        child: Text(data[index].ingredientesDesc)),
+                                      Spacer(),
+                                      Text(data[index].ingredientesBaseQtd.toString() + data[index].ingredientesBaseUnity)
+                                    ],
+                                  )
                                 ),
                               );
                             }

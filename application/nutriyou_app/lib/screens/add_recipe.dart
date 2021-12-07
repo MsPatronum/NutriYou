@@ -36,14 +36,14 @@ class _AddRecipeState extends State<AddRecipe> {
     String recipeName = _recipeNameController.text;
     String recipeDesc = _recipeDescController.text;
     int nivel = _nivel;
-    String recipeHour = _recipeHourController.text == null ? "sim" : _recipeHourController.text;
-    String recipeMin = _recipeMinController.text == null? 0 : _recipeMinController.text;
+    String recipeHour = _recipeHourController.text;
+    String recipeMin = _recipeMinController.text;
     String recipePortion =_recipePortionController.text;
     int privacidade = _privacidade;
 
     NumberFormat formatter = NumberFormat("00");
     print(recipeHour + "recipe hour");
-    //var tempoPreparo = formatter.format(int.parse(recipeHour))+":"+formatter.format(int.parse(recipeMin))+":"+"00";
+    var tempoPreparo = formatter.format(int.parse(recipeHour))+":"+formatter.format(int.parse(recipeMin))+":"+"00";
 
     var url = link("recipe/new_recipe.php");
 
@@ -53,19 +53,19 @@ class _AddRecipeState extends State<AddRecipe> {
     var data = {
       'usuario_id': userId, 
       'nivel_receita_id': nivel, 
-      //'receita_tempo_preparo': tempoPreparo,
+      'receita_tempo_preparo': tempoPreparo,
       'receita_porcoes': recipePortion,
       'receita_nome': recipeName,
       'receita_desc': recipeDesc,
       'receita_modo': privacidade,
       'receita_status': '0'};
 
-    //var response = await  http.post(url, body: json.encode(data));
+    var response = await  http.post(url, body: json.encode(data));
     
     print(data);
-   // var message = recipeAddFromJson(response.body);
+    var message = recipeAddFromJson(response.body);
 
-    //prefs.setInt('receita_id', message.data.receitaId);
+    prefs.setInt('receita_id', message.data.receitaId);
 
   }
 
@@ -113,6 +113,7 @@ class _AddRecipeState extends State<AddRecipe> {
           child: FutureBuilder(
             builder: (context, snapshot){
               return Form(
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 key: _formKey,
                 child: (
                   Column(
@@ -281,7 +282,7 @@ class _AddRecipeState extends State<AddRecipe> {
                             onPressed: () {
                               //print(ModalRoute.of(context).settings.name);
                               addRecipe();
-                             /* Navigator.pushReplacement(
+                              Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
                                   settings: RouteSettings(name: '/view_ingredients'),
@@ -289,7 +290,7 @@ class _AddRecipeState extends State<AddRecipe> {
                                     return new ViewIngredients();
                                   },
                                 ),
-                              );*/
+                              );
 
                               //Navigator.of(context).popUntil(ModalRoute.withName(HomeViewRoute));
                             },

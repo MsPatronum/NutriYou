@@ -34,7 +34,7 @@ class _ViewIngredientsState extends State<ViewIngredients> {
     var userId = prefs.getInt('id');
     var receitaId = prefs.getInt('receita_id');
 
-    var url = link("recipe/fetch_ingredients.php");
+    var url = link("recipe/fetch_recipe_ingredients.php");
 
     var data = {'usuario_id': userId, 'receita_id': receitaId};
 
@@ -156,7 +156,7 @@ class _ViewIngredientsState extends State<ViewIngredients> {
                                 MaterialPageRoute(
                                   settings: RouteSettings(name: '/add_ingredients'),
                                   builder: (BuildContext context) {
-                                    return new AddIngredients();
+                                    return new IngredientAdd();
                                   },
                                 ),
                               );

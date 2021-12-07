@@ -57,6 +57,6 @@ $keys = array(
 		$response['message'] = 'Erro no processo';	
 		$stmt->close();
 	}	
-	echo json_encode($response);
+	echo json_encode($response, JSON_UNESCAPED_UNICODE);
 
 ?>

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:nutriyou_app/const.dart';
 import 'package:nutriyou_app/models/loginModel.dart';
 import 'package:nutriyou_app/screens/homepage.dart';
+import 'package:nutriyou_app/screens/myappbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nutriyou_app/routing_constants.dart';
 import 'package:nutriyou_app/screens/FormValidator.dart';
@@ -71,13 +72,13 @@ Future<LoginMessage> userLogin() async{
       prefs.setString('nome', message.data.nome);
   
       // Navigate to Profile Screen & Sending Email to Next Screen.
-      Navigator.pushNamed(context, HomeViewRoute);
+      
       Navigator.push(
         context,
         MaterialPageRoute(
           settings: RouteSettings(name: HomeViewRoute),
           builder: (BuildContext context) {
-            return new HomeView();
+            return new MyAppBar();
           },
         ),
       );

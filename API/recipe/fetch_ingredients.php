@@ -18,7 +18,7 @@
 	}
 	
 	$usuario_id = $obj['usuario_id'];
-	$receita_id = $obj['receita_id'];*
+	$receita_id = $obj['receita_id'];
 	
 	// DADOS PARA TESTE
 	//$receita_id = 1;

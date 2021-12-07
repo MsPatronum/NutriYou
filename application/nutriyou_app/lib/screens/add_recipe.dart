@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:nutriyou_app/const.dart';
 import 'package:nutriyou_app/models/recipeAddModel.dart';
 import 'package:nutriyou_app/routing_constants.dart';
+import 'package:nutriyou_app/screens/view_ingredients.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddRecipe extends StatefulWidget {
@@ -35,14 +36,14 @@ class _AddRecipeState extends State<AddRecipe> {
     String recipeName = _recipeNameController.text;
     String recipeDesc = _recipeDescController.text;
     int nivel = _nivel;
-    String recipeHour = _recipeHourController.text;
-    String recipeMin = _recipeMinController.text;
+    String recipeHour = _recipeHourController.text == null ? "sim" : _recipeHourController.text;
+    String recipeMin = _recipeMinController.text == null? 0 : _recipeMinController.text;
     String recipePortion =_recipePortionController.text;
     int privacidade = _privacidade;
 
     NumberFormat formatter = NumberFormat("00");
-
-    var tempoPreparo = formatter.format(int.parse(recipeHour))+":"+formatter.format(int.parse(recipeMin))+":"+"00";
+    print(recipeHour + "recipe hour");
+    //var tempoPreparo = formatter.format(int.parse(recipeHour))+":"+formatter.format(int.parse(recipeMin))+":"+"00";
 
     var url = link("recipe/new_recipe.php");
 
@@ -52,20 +53,33 @@ class _AddRecipeState extends State<AddRecipe> {
     var data = {
       'usuario_id': userId, 
       'nivel_receita_id': nivel, 
-      'receita_tempo_preparo': tempoPreparo,
+      //'receita_tempo_preparo': tempoPreparo,
       'receita_porcoes': recipePortion,
       'receita_nome': recipeName,
       'receita_desc': recipeDesc,
       'receita_modo': privacidade,
       'receita_status': '0'};
 
-    var response = await  http.post(url, body: json.encode(data));
+    //var response = await  http.post(url, body: json.encode(data));
     
     print(data);
-    var message = recipeAddFromJson(response.body);
+   // var message = recipeAddFromJson(response.body);
 
-    prefs.setInt('receita_id', message.data.receitaId);
+    //prefs.setInt('receita_id', message.data.receitaId);
 
+  }
+
+  Future<RecipeAdd> remRecipe() async {
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var receita_id = prefs.getInt('receita_id');
+
+    if(receita_id != null){
+      var url = link('recipe/remove_recipe.php');
+      var data = {'receita_id': receita_id};
+      var response = await  http.post(url, body: json.encode(data));
+      prefs.remove('receita_id');
+    }
   }
 
 
@@ -267,6 +281,15 @@ class _AddRecipeState extends State<AddRecipe> {
                             onPressed: () {
                               //print(ModalRoute.of(context).settings.name);
                               addRecipe();
+                             /* Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  settings: RouteSettings(name: '/view_ingredients'),
+                                  builder: (BuildContext context) {
+                                    return new ViewIngredients();
+                                  },
+                                ),
+                              );*/
 
                               //Navigator.of(context).popUntil(ModalRoute.withName(HomeViewRoute));
                             },

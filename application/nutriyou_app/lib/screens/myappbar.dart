@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nutriyou_app/app_colors.dart';
 import 'package:nutriyou_app/screens/eu.dart';
 import 'package:nutriyou_app/screens/homepage.dart';
 
@@ -17,9 +18,7 @@ class _MyAppBarState extends State<MyAppBar> with SingleTickerProviderStateMixin
   List<Widget> _tabList = [
     HomeView(),
     MeView(),
-    Container(
-      color: Colors.purple,
-    )
+    MeView()
 
   ];
 
@@ -46,6 +45,8 @@ class _MyAppBarState extends State<MyAppBar> with SingleTickerProviderStateMixin
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
+        selectedItemColor: Colors.teal.shade300,
+        unselectedItemColor: Colors.grey.shade400,
         onTap: (currentIndex){
 
           setState(() {
@@ -57,16 +58,16 @@ class _MyAppBarState extends State<MyAppBar> with SingleTickerProviderStateMixin
         },
         items: [
           BottomNavigationBarItem(
-            label: "Home",
-            icon: Icon(Icons.home)
+            label: "Início",
+            icon: Icon(Icons.home_rounded)
           ),
           BottomNavigationBarItem(
-            label: "Files",
-            icon: Icon(Icons.folder)
+            label: "Relatórios",
+            icon: Icon(Icons.insert_chart_rounded)
           ),
           BottomNavigationBarItem(
-            label: "Settings",
-            icon: Icon(Icons.settings)
+            label: "Eu",
+            icon: Icon(Icons.person_rounded)
           )
         ],
       ),

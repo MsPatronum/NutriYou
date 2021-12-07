@@ -31,17 +31,15 @@ class _RecipeViewState extends State<RecipeView> {
 
   Future<RecipeViewModel> fetchRecipe(int receita_id) async {
 
-    var data = {'receita_id': 1};
+    var data = {'receita_id': receita_id};
 
     var response = await http.post(Uri.parse(recipeviewlink), body: json.encode(data));
     if (response.statusCode == 200) {
 
         final recipeView = recipeViewModelFromJson(response.body);
-        print(recipeView.imagens.last.receitaImagensPath + " length");
+        //print(response.body);
         return recipeView;
-          
-         // return (itensRefeicao as Map);
-      }
+    }
     else {
       throw Exception('Failed to load data from Server.');
     }

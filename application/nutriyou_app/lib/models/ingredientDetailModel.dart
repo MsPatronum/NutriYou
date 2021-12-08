@@ -1,16 +1,40 @@
 // To parse this JSON data, do
 //
-//     final ingredienteModel = ingredienteModelFromJson(jsonString);
+//     final ingredientDetailModel = ingredientDetailModelFromJson(jsonString);
 
 import 'dart:convert';
 
-List<IngredienteModel> ingredienteModelFromJson(String str) => List<IngredienteModel>.from(json.decode(str).map((x) => IngredienteModel.fromJson(x)));
+IngredientDetailModel ingredientDetailModelFromJson(String str) => IngredientDetailModel.fromJson(json.decode(str));
 
-String ingredienteModelToJson(List<IngredienteModel> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
+String ingredientDetailModelToJson(IngredientDetailModel data) => json.encode(data.toJson());
 
-class IngredienteModel {
-    IngredienteModel({
-      this.ingredienteId,
+class IngredientDetailModel {
+    IngredientDetailModel({
+        this.error,
+        this.message,
+        this.data,
+    });
+
+    bool error;
+    String message;
+    Data data;
+
+    factory IngredientDetailModel.fromJson(Map<String, dynamic> json) => IngredientDetailModel(
+        error: json["error"] == null ? null : json["error"],
+        message: json["message"] == null ? null : json["message"],
+        data: json["data"] == null ? null : Data.fromJson(json["data"]),
+    );
+
+    Map<String, dynamic> toJson() => {
+        "error": error == null ? null : error,
+        "message": message == null ? null : message,
+        "data": data == null ? null : data.toJson(),
+    };
+}
+
+class Data {
+    Data({
+        this.ingredientesId,
         this.ingredientesDesc,
         this.ingredientesBaseQtd,
         this.ingredientesBaseUnity,
@@ -27,7 +51,8 @@ class IngredienteModel {
         this.energyKcal,
         this.energyKj,
     });
-    int ingredienteId;
+
+    int ingredientesId;
     String ingredientesDesc;
     double ingredientesBaseQtd;
     String ingredientesBaseUnity;
@@ -44,8 +69,8 @@ class IngredienteModel {
     double energyKcal;
     double energyKj;
 
-    factory IngredienteModel.fromJson(Map<String, dynamic> json) => IngredienteModel(
-        ingredienteId: json["ingredientes_id"] == null ? null : json["ingredientes_id"],
+    factory Data.fromJson(Map<String, dynamic> json) => Data(
+        ingredientesId: json["ingredientes_id"] == null ? null : json["ingredientes_id"],
         ingredientesDesc: json["ingredientes_desc"] == null ? null : json["ingredientes_desc"],
         ingredientesBaseQtd: json["ingredientes_base_qtd"] == null ? null : json["ingredientes_base_qtd"].toDouble(),
         ingredientesBaseUnity: json["ingredientes_base_unity"] == null ? null : json["ingredientes_base_unity"],
@@ -64,7 +89,7 @@ class IngredienteModel {
     );
 
     Map<String, dynamic> toJson() => {
-        "ingredientes_id":ingredienteId == null ? null : ingredienteId,
+        "ingredientes_id": ingredientesId == null ? null : ingredientesId,
         "ingredientes_desc": ingredientesDesc == null ? null : ingredientesDesc,
         "ingredientes_base_qtd": ingredientesBaseQtd == null ? null : ingredientesBaseQtd,
         "ingredientes_base_unity": ingredientesBaseUnity == null ? null : ingredientesBaseUnity,

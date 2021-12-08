@@ -28,8 +28,6 @@ class _IngredientAddState extends State<IngredientAdd> {
 
   Future<List<IngredienteModel>> searchIngredients(searchQuery) async {
 
-    
-
     var data = {'search_query' : searchQuery};
     
     var response = await http.post(Uri.parse(url_mealsearch), body: json.encode(data));
@@ -39,14 +37,7 @@ class _IngredientAddState extends State<IngredientAdd> {
       if(response.body.contains("No Results Found")){
       }else{
         final List ingredienteModel = List<IngredienteModel>.from(json.decode(response.body).map((x) => IngredienteModel.fromJson(x)));
-        
-        print(ingredienteModel.first.ingredientesDesc.toString() + "teste");
-        int  _maxItems = ingredienteModel.length;
-        int  _numItemsPage = 10;
-
-
         return ingredienteModel;
-
       }
     }
   }
@@ -116,7 +107,6 @@ class _IngredientAddState extends State<IngredientAdd> {
                   );
                 }else if(snapshot.hasData){
                   var data = snapshot.data;
-                  print(snapshot.data.first.ingredientesDesc.toString());
                   if(snapshot.data.first.ingredientesDesc == null){
                       
                   }else{
@@ -136,16 +126,40 @@ class _IngredientAddState extends State<IngredientAdd> {
                                 },
                                 child: 
                                 Container(
+                                  height: 50,
+                                  margin: EdgeInsets.only(bottom: 15),
+                                  padding: EdgeInsets.symmetric(horizontal: 15),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(15),
+                                    color: Colors.white,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.2),
+                                        spreadRadius: 2,
+                                        blurRadius: 2,
+                                        offset: Offset(0, 0),
+                                      )
+                                    ],
+                                  ),
                                   child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Container(
-                                        width: MediaQuery.of(context).size.width * 0.75,
-                                        child: Text(data[index].ingredientesDesc)),
-                                      Spacer(),
-                                      Text(data[index].ingredientesBaseQtd.toString() + data[index].ingredientesBaseUnity)
+                                        width: MediaQuery.of(context).size.width * 0.65,
+                                        child: Text(
+                                          data[index].ingredientesDesc
+                                        ),
+                                      ), 
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(text: data[index].ingredientesBaseQtd.toString() + data[index].ingredientesBaseUnity)
+                                          ]
+                                        )
+                                      )
                                     ],
-                                  )
-                                ),
+                                  ),
+                                )
                               );
                             }
                         )

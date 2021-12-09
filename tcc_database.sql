@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 07-Dez-2021 às 11:58
+-- Tempo de geração: 09-Dez-2021 às 10:49
 -- Versão do servidor: 10.4.18-MariaDB
 -- versão do PHP: 8.0.3
 
@@ -133,6 +133,65 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `new_day` (IN `user_id` INT, IN `use
 	SET resposta = 'OK';
 	COMMIT;
 end$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `remove_ingredient` (IN `receita_id` INT, `ingrediente_id` INT)  BEGIN
+	DECLARE qtd,
+			new_humidity_qtd, new_protein_qtd, new_lipid_qtd, new_carbohydrate_qtd, new_fiber_qtd, new_energy_kcal, new_energy_kj, 
+			rec_humidity_qtd, rec_protein_qtd, rec_lipid_qtd, rec_carbohydrate_qtd, rec_fiber_qtd, rec_energy_kcal, rec_energy_kj, 
+			ing_humidity_qtd, ing_protein_qtd, ing_lipid_qtd, ing_carbohydrate_qtd, ing_fiber_qtd, ing_energy_kcal, ing_energy_kj float;
+    declare	new_humidity_unit, new_protein_unit, new_lipid_unit, new_carbohydrate_unit, new_fiber_unit,
+			rec_humidity_unit, rec_protein_unit, rec_lipid_unit, rec_carbohydrate_unit, rec_fiber_unit, 
+			ing_humidity_unit, ing_protein_unit, ing_lipid_unit, ing_carbohydrate_unit, ing_fiber_unit Varchar(2);
+    
+    -- setar quantidade dos ingredientes
+    set qtd = (SELECT ri.receita_ingredientes_qtd from receita_ingredientes ri 
+				where ri.receita_id = receita_id and ri.ingredientes_id = ingrediente_id);
+    
+    -- setar os valores do ingrediente
+    set ing_humidity_qtd = (SELECT ivn.humidity_qtd from ingrediente_val_nutricional ivn where ivn.ingrediente_id = ingrediente_id); 
+    set ing_protein_qtd = (SELECT ivn.protein_qtd from ingrediente_val_nutricional ivn where ivn.ingrediente_id = ingrediente_id); 
+    set ing_lipid_qtd = (SELECT ivn.lipid_qtd from ingrediente_val_nutricional ivn where ivn.ingrediente_id = ingrediente_id); 
+    set ing_carbohydrate_qtd = (SELECT ivn.carbohydrate_qtd from ingrediente_val_nutricional ivn where ivn.ingrediente_id = ingrediente_id); 
+    set ing_fiber_qtd = (SELECT ivn.fiber_qtd from ingrediente_val_nutricional ivn where ivn.ingrediente_id = ingrediente_id); 
+    set ing_energy_kcal = (SELECT ivn.energy_kcal from ingrediente_val_nutricional ivn where ivn.ingrediente_id = ingrediente_id); 
+    set ing_energy_kj = (SELECT ivn.energy_kj from ingrediente_val_nutricional ivn where ivn.ingrediente_id = ingrediente_id); 
+    set ing_humidity_unit = (SELECT ivn.humidity_unit from ingrediente_val_nutricional ivn where ivn.ingrediente_id = ingrediente_id); 
+    set ing_protein_unit = (SELECT ivn.protein_unit from ingrediente_val_nutricional ivn where ivn.ingrediente_id = ingrediente_id); 
+    set ing_lipid_unit = (SELECT ivn.lipid_unit from ingrediente_val_nutricional ivn where ivn.ingrediente_id = ingrediente_id); 
+    set ing_carbohydrate_unit = (SELECT ivn.carbohydrate_unit from ingrediente_val_nutricional ivn where ivn.ingrediente_id = ingrediente_id); 
+    set ing_fiber_unit = (SELECT ivn.fiber_unit from ingrediente_val_nutricional ivn where ivn.ingrediente_id = ingrediente_id); 
+    
+    -- setar os valores da receita
+    set rec_humidity_qtd = (SELECT rvn.humidity_qtd from receita_val_nutricional rvn where rvn.receita_id = receita_id);
+    set rec_protein_qtd = (SELECT rvn.protein_qtd from receita_val_nutricional rvn where rvn.receita_id = receita_id); 
+    set rec_lipid_qtd = (SELECT rvn.lipid_qtd from receita_val_nutricional rvn where rvn.receita_id = receita_id); 
+    set rec_carbohydrate_qtd = (SELECT rvn.carbohydrate_qtd from receita_val_nutricional rvn where rvn.receita_id = receita_id); 
+    set rec_fiber_qtd = (SELECT rvn.fiber_qtd from receita_val_nutricional rvn where rvn.receita_id = receita_id); 
+    set rec_energy_kcal = (SELECT rvn.energy_kcal from receita_val_nutricional rvn where rvn.receita_id = receita_id); 
+    set rec_energy_kj = (SELECT rvn.energy_kj from receita_val_nutricional rvn where rvn.receita_id = receita_id); 
+    set rec_humidity_unit = (SELECT rvn.humidity_unit from receita_val_nutricional rvn where rvn.receita_id = receita_id); 
+    set rec_protein_unit = (SELECT rvn.protein_unit from receita_val_nutricional rvn where rvn.receita_id = receita_id); 
+    set rec_lipid_unit = (SELECT rvn.lipid_unit from receita_val_nutricional rvn where rvn.receita_id = receita_id); 
+    set rec_carbohydrate_unit = (SELECT rvn.carbohydrate_unit from receita_val_nutricional rvn where rvn.receita_id = receita_id); 
+    set rec_fiber_unit = (SELECT rvn.fiber_unit from receita_val_nutricional rvn where rvn.receita_id = receita_id); 
+    
+    set new_humidity_qtd =				rec_humidity_qtd - (ing_humidity_qtd * qtd) ; 
+    set new_protein_qtd =				rec_protein_qtd - (ing_protein_qtd *qtd); 
+    set new_lipid_qtd =					rec_lipid_qtd - (ing_lipid_qtd *qtd); 
+    set new_carbohydrate_qtd =			rec_carbohydrate_qtd - (ing_carbohydrate_qtd *qtd) ; 
+    set new_fiber_qtd =					rec_fiber_qtd - (ing_fiber_qtd *qtd); 
+    set new_energy_kcal =				rec_energy_kcal - (ing_energy_kcal *qtd); 
+    set new_energy_kj =					rec_energy_kj - (ing_energy_kj *qtd);
+    
+    -- update receita_val_nutricional
+    UPDATE receita_val_nutricional rvn set  rvn.humidity_qtd = new_humidity_qtd, rvn.protein_qtd = new_protein_qtd, 
+    rvn.lipid_qtd = new_lipid_qtd, rvn.carbohydrate_qtd = new_carbohydrate_qtd, rvn.fiber_qtd = new_fiber_qtd, rvn.energy_kcal = new_energy_kcal, 
+    rvn.energy_kj = new_energy_kj where rvn.receita_id = receita_id;
+    
+    delete from receita_ingredientes where receita_id = receita_id and ingredientes_id = ingrediente_id;
+    
+
+END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `remove_receitadarefeica` (IN `user_id` INT, `cod_refeicao` INT, `cod_receita` INT, `todaydate` DATE, OUT `resposta` VARCHAR(40))  BEGIN
 
@@ -2314,8 +2373,16 @@ CREATE TABLE `receita` (
 
 INSERT INTO `receita` (`receita_id`, `usuario_id`, `nivel_receita_id`, `receita_tempo_preparo`, `receita_porcoes`, `receita_nome`, `receita_desc`, `recita_modo`, `receita_status`) VALUES
 (1, 2, 1, '00:25:00', 5, 'Arroz Cozido', 'Arroz caseiro, uma delícia!', 1, 1),
-(2, 1, 1, '20:35:00', 5, 'Receita teste', 'Breve descriçao da receita teste', NULL, 0),
-(3, 1, 1, '20:35:00', 5, 'Receita teste', 'Breve descriçao da receita teste', 1, 0);
+(7, 1, 1, '00:20:00', 1, 'teste nome da receita', 'descricao da receita', 1, 0),
+(8, 1, 1, '00:50:00', 6, 'Nome a receita Teste', 'Descricao da receita teste', 1, 0),
+(9, 1, 1, '05:33:00', 10, 'Receita Teste', 'desceicao da receita', 1, 0),
+(10, 1, 1, '02:20:00', 12, 'Receita Teste', 'Descricao', 1, 0),
+(11, 1, 1, '00:04:00', 4, 'teste', 'teste', 1, 0),
+(12, 1, 1, '05:30:00', 5, 'teste', 'teste', 1, 0),
+(13, 1, 1, '00:50:00', 22, 'teste', 'teste 12', 1, 0),
+(14, 1, 1, '00:20:00', 10, 'teste	', 'teste', 1, 0),
+(15, 1, 1, '00:20:00', 20, 'Teste', 'teste', 1, 0),
+(16, 1, 1, '01:30:00', 20, 'teste', 'teste', 1, 0);
 
 -- --------------------------------------------------------
 
@@ -2388,7 +2455,18 @@ CREATE TABLE `receita_ingredientes` (
 --
 
 INSERT INTO `receita_ingredientes` (`receita_ingredientes_id`, `receita_id`, `ingredientes_id`, `receita_ingredientes_qtd`) VALUES
-(1, 1, 4, 1);
+(41, 10, 2, 1.5),
+(45, 12, 10, 0.5),
+(46, 12, 5, 1.5),
+(47, 12, 9, 0.1),
+(53, 13, 6, 3),
+(54, 13, 4, 0.1),
+(55, 13, 7, 0.5),
+(56, 13, 9, 0.2),
+(57, 13, 8, 1),
+(58, 15, 1, 1),
+(59, 16, 7, 0.5),
+(60, 16, 581, 0.1);
 
 -- --------------------------------------------------------
 
@@ -2478,7 +2556,15 @@ CREATE TABLE `receita_val_nutricional` (
 --
 
 INSERT INTO `receita_val_nutricional` (`receita_val_nutricional_id`, `receita_id`, `humidity_qtd`, `humidity_unit`, `protein_qtd`, `protein_unit`, `lipid_qtd`, `lipid_unit`, `carbohydrate_qtd`, `carbohydrate_unit`, `fiber_qtd`, `fiber_unit`, `energy_kcal`, `energy_kj`) VALUES
-(1, 1, 13.225, 'percents', 7.159, 'g', 0.335, 'g', 78.76, 'g', 1.639, 'g', 357.789, 1496.99);
+(1, 1, 13.225, 'percents', 7.159, 'g', 0.335, 'g', 78.76, 'g', 1.639, 'g', 357.789, 1496.99),
+(2, 8, 0, 'percents', 0, 'g', 0, 'g', 0, 'g', 0, 'g', 0, 0),
+(3, 7, 70.139, 'percents', 9.058, 'g', 3.5, 'g', 90.335, 'g', 9.6215, 'g', 432.373, 1809.05),
+(5, 10, 13.225, 'percents', 18.1435, 'g', 3.1325, 'g', 194.936, 'g', 8.8675, 'g', 897.306, 3754.32),
+(6, 11, 70.139, 'percents', 0.2588, 'g', 0.1, 'g', 2.581, 'g', 0.2749, 'g', 12.3535, 51.687),
+(7, 12, 2.183, 'percents', 25.4235, 'g', 40.0205, 'g', 287.896, 'g', 8.0185, 'g', 1609.81, 6735.42),
+(8, 13, 3.217, 'percents', 17.0293, 'g', 37.0464, 'g', 27.935, 'g', 8.1257, 'g', 474.686, 1986.07),
+(9, 15, 70.139, 'percents', 2.588, 'g', 1, 'g', 25.81, 'g', 2.749, 'g', 123.535, 516.87),
+(10, 16, 5.75, 'percents', 42.9905, 'g', 18.8815, 'g', 71.758, 'g', 24.745, 'g', 600.867, 2514.02);
 
 -- --------------------------------------------------------
 
@@ -2501,7 +2587,8 @@ INSERT INTO `udm_receita` (`udm_receita_id`, `user_dia_momento_id`, `receita_id`
 (7, 2, 1),
 (9, 3, 1),
 (11, 3, 1),
-(12, 4, 1);
+(12, 4, 1),
+(13, 5, 1);
 
 -- --------------------------------------------------------
 
@@ -2547,7 +2634,9 @@ INSERT INTO `user_dia` (`user_dia_id`, `usuario_id`, `user_dia_data`) VALUES
 (1, 1, '2021-12-04'),
 (2, 1, '2021-12-05'),
 (3, 1, '2021-12-06'),
-(4, 1, '2021-12-07');
+(4, 1, '2021-12-07'),
+(5, 1, '2021-12-08'),
+(6, 1, '2021-12-09');
 
 -- --------------------------------------------------------
 
@@ -2578,7 +2667,9 @@ INSERT INTO `user_dia_macros` (`user_dia_macros_id`, `user_dia_id`, `udm_kcal`, 
 (1, 1, 357.789, 7.159, 78.76, 0.335, 1.639, 1701, 55.2825, 276.413, 97.8075, 0),
 (2, 2, 1073.37, 21.477, 236.28, 1.005, 4.917, 1701, 55.2825, 276.413, 97.8075, 0),
 (3, 3, 715.578, 14.318, 157.52, 0.67, 3.278, 1701, 55.2825, 276.413, 97.8075, 0),
-(4, 4, 357.789, 7.159, 78.76, 0.335, 1.639, 1701, 55.2825, 276.413, 97.8075, 0);
+(4, 4, 357.789, 7.159, 78.76, 0.335, 1.639, 1701, 55.2825, 276.413, 97.8075, 0),
+(5, 5, 0, 0, 0, 0, 0, 1701, 55.2825, 276.413, 97.8075, 0),
+(6, 6, 357.789, 7.159, 78.76, 0.335, 1.639, 1701, 55.2825, 276.413, 97.8075, 0);
 
 -- --------------------------------------------------------
 
@@ -2601,7 +2692,8 @@ INSERT INTO `user_dia_momento` (`user_dia_momento_id`, `user_dia_id`, `momento_i
 (1, 1, 1, 357.789),
 (2, 2, 1, 1073.37),
 (3, 3, 1, 715.578),
-(4, 4, 1, 357.789);
+(4, 4, 1, 357.789),
+(5, 6, 2, 357.789);
 
 -- --------------------------------------------------------
 
@@ -2821,6 +2913,31 @@ CREATE TABLE `view_receita` (
 -- --------------------------------------------------------
 
 --
+-- Estrutura stand-in para vista `v_ingredientes`
+-- (Veja abaixo para a view atual)
+--
+CREATE TABLE `v_ingredientes` (
+`ingredientes_id` int(11)
+,`ingredientes_desc` varchar(100)
+,`ingredientes_base_qtd` float
+,`ingredientes_base_unity` varchar(45)
+,`humidity_qtd` float
+,`humidity_unit` varchar(45)
+,`protein_qtd` float
+,`protein_unit` varchar(45)
+,`lipid_qtd` float
+,`lipid_unit` varchar(45)
+,`carbohydrate_qtd` float
+,`carbohydrate_unit` varchar(45)
+,`fiber_qtd` float
+,`fiber_unit` varchar(45)
+,`energy_kcal` float
+,`energy_kj` float
+);
+
+-- --------------------------------------------------------
+
+--
 -- Estrutura stand-in para vista `v_receita_ingredientes`
 -- (Veja abaixo para a view atual)
 --
@@ -2950,6 +3067,15 @@ CREATE TABLE `v_userdiamood` (
 DROP TABLE IF EXISTS `view_receita`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_receita`  AS SELECT `r`.`receita_id` AS `receita_id`, `r`.`receita_nome` AS `receita_nome`, `r`.`receita_desc` AS `receita_desc`, `r`.`receita_porcoes` AS `receita_porcoes`, `r`.`receita_tempo_preparo` AS `receita_tempo_preparo`, `rn`.`rn_nivel` AS `rn_nivel`, group_concat(`m`.`momento_desc` separator ' , ') AS `momento`, `rvn`.`humidity_qtd` AS `humidity_qtd`, `rvn`.`humidity_unit` AS `humidity_unit`, `rvn`.`protein_qtd` AS `protein_qtd`, `rvn`.`protein_unit` AS `protein_unit`, `rvn`.`lipid_qtd` AS `lipid_qtd`, `rvn`.`lipid_unit` AS `lipid_unit`, `rvn`.`carbohydrate_qtd` AS `carbohydrate_qtd`, `rvn`.`carbohydrate_unit` AS `carbohydrate_unit`, `rvn`.`fiber_qtd` AS `fiber_qtd`, `rvn`.`fiber_unit` AS `fiber_unit`, `rvn`.`energy_kcal` AS `energy_kcal`, `rvn`.`energy_kj` AS `energy_kj`, `r`.`receita_status` AS `receita_status` FROM ((((`receita` `r` join `receita_nivel` `rn` on(`rn`.`receita_nivel_id` = `r`.`nivel_receita_id`)) join `receita_val_nutricional` `rvn` on(`rvn`.`receita_id` = `r`.`receita_id`)) join `receita_momentos` `rm` on(`rm`.`receita_id` = `r`.`receita_id`)) join `momento` `m` on(`rm`.`momento_id` = `m`.`momento_id`)) ;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para vista `v_ingredientes`
+--
+DROP TABLE IF EXISTS `v_ingredientes`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_ingredientes`  AS SELECT `i`.`ingredientes_id` AS `ingredientes_id`, `i`.`ingredientes_desc` AS `ingredientes_desc`, `i`.`ingredientes_base_qtd` AS `ingredientes_base_qtd`, `i`.`ingredientes_base_unity` AS `ingredientes_base_unity`, `ivn`.`humidity_qtd` AS `humidity_qtd`, `ivn`.`humidity_unit` AS `humidity_unit`, `ivn`.`protein_qtd` AS `protein_qtd`, `ivn`.`protein_unit` AS `protein_unit`, `ivn`.`lipid_qtd` AS `lipid_qtd`, `ivn`.`lipid_unit` AS `lipid_unit`, `ivn`.`carbohydrate_qtd` AS `carbohydrate_qtd`, `ivn`.`carbohydrate_unit` AS `carbohydrate_unit`, `ivn`.`fiber_qtd` AS `fiber_qtd`, `ivn`.`fiber_unit` AS `fiber_unit`, `ivn`.`energy_kcal` AS `energy_kcal`, `ivn`.`energy_kj` AS `energy_kj` FROM (`ingredientes` `i` join `ingrediente_val_nutricional` `ivn`) WHERE `ivn`.`ingrediente_id` = `i`.`ingredientes_id` ;
 
 -- --------------------------------------------------------
 
@@ -3250,7 +3376,7 @@ ALTER TABLE `paciente_profissional`
 -- AUTO_INCREMENT de tabela `receita`
 --
 ALTER TABLE `receita`
-  MODIFY `receita_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `receita_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT de tabela `receita_aval`
@@ -3274,7 +3400,7 @@ ALTER TABLE `receita_imagens`
 -- AUTO_INCREMENT de tabela `receita_ingredientes`
 --
 ALTER TABLE `receita_ingredientes`
-  MODIFY `receita_ingredientes_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `receita_ingredientes_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
 
 --
 -- AUTO_INCREMENT de tabela `receita_momentos`
@@ -3298,13 +3424,13 @@ ALTER TABLE `receita_passos`
 -- AUTO_INCREMENT de tabela `receita_val_nutricional`
 --
 ALTER TABLE `receita_val_nutricional`
-  MODIFY `receita_val_nutricional_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `receita_val_nutricional_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de tabela `udm_receita`
 --
 ALTER TABLE `udm_receita`
-  MODIFY `udm_receita_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `udm_receita_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de tabela `user_book`
@@ -3322,19 +3448,19 @@ ALTER TABLE `user_book_rec`
 -- AUTO_INCREMENT de tabela `user_dia`
 --
 ALTER TABLE `user_dia`
-  MODIFY `user_dia_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `user_dia_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de tabela `user_dia_macros`
 --
 ALTER TABLE `user_dia_macros`
-  MODIFY `user_dia_macros_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `user_dia_macros_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de tabela `user_dia_momento`
 --
 ALTER TABLE `user_dia_momento`
-  MODIFY `user_dia_momento_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `user_dia_momento_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de tabela `user_dia_mood`

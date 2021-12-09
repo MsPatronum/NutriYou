@@ -8,6 +8,7 @@ import 'package:nutriyou_app/models/recipeIngredientViewModel.dart';
 import 'package:nutriyou_app/models/recipeIngredientsModel.dart';
 import 'package:nutriyou_app/screens/add_ingredients.dart';
 import 'package:nutriyou_app/screens/detail_ingredient.dart';
+import 'package:nutriyou_app/screens/view_steps.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ViewIngredients extends StatefulWidget {
@@ -293,10 +294,15 @@ class _ViewIngredientsState extends State<ViewIngredients> {
                             shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
                             padding: MaterialStateProperty.all(EdgeInsets.all(12))),
                             onPressed: () {
-                              //print(ModalRoute.of(context).settings.name);
-                              //addRecipe();
-                            
-                              //Navigator.of(context).popUntil(ModalRoute.withName(HomeViewRoute));
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  settings: RouteSettings(name: '/view_steps'),
+                                  builder: (BuildContext context) {
+                                    return ViewSteps();
+                                  },
+                                ),
+                              );
                             },
                             child: Column(
                               children: [

@@ -123,7 +123,7 @@ class _ViewIngredientsState extends State<ViewIngredients> {
                               builder: (context, snapshoting){
                                 if(snapshoting.hasData){
                                   // ignore: unrelated_type_equality_checks
-                                  if(snapshoting.data != 'No Results Found'){
+                                  if(snapshoting.data.message == 'Ingrediente retornado com sucesso.'){
                                     
                                     return Container(
                                       child: ListView.builder(

@@ -5,7 +5,7 @@
     include(conexao);
     include(funcoes);
     
-    $keys=array('receita_id');
+    /*$keys=array('receita_id');
     
     for ($i = 0; $i < count($keys); $i++){
         if(!isset($obj[$keys[$i]]))
@@ -20,9 +20,9 @@
     }
  
     // Populate ID from JSON $obj array and store into $ID variable.
-    $receita_id = $obj['receita_id'];
+    $receita_id = $obj['receita_id'];*/
 
-    //$receita_id = 1;
+    $receita_id = 1;
  
     //Fetching the selected record as per ID.
     $receita_detalhes = $mysqli->prepare("

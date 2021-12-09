@@ -91,6 +91,203 @@ Future addSteps(step_desc, step_nr) async {
                 if(nulo != 0){
                   return Column(
                     children: [
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: BouncingScrollPhysics(),
+                        itemCount: snapshot.data.data.length,
+                        itemBuilder: (BuildContext context, int index){
+                          var data = snapshot.data.data;
+                          return Column(
+                            children: [
+                              Container(
+                                margin: EdgeInsets.only(bottom: 15),
+                                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(15),
+                                  color: Colors.white,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.2),
+                                      spreadRadius: 2,
+                                      blurRadius: 2,
+                                      offset: Offset(0, 0),
+                                    )
+                                  ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: MediaQuery.of(context).size.width * 0.1,
+                                          child: Text("Passo \n"+data[index].rpNumero.toString(), textAlign: TextAlign.center,)
+                                        ),
+                                        Container(
+                                          width: MediaQuery.of(context).size.width * 0.6,
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Text(data[index].rpDesc)
+                                            ],
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                    /*Container(
+                                      width: MediaQuery.of(context).size.width * 0.09,
+                                      child: IconButton(
+                                        onPressed: (){
+
+                                        }, 
+                                        icon: Icon(Icons.delete_rounded), 
+                                        color: Colors.pink,
+                                      )
+                                    ),*/
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                      SizedBox(
+                        height: 80,
+                        width: double.infinity,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16.0),
+                          child: ElevatedButton(
+                            style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.teal.shade300), 
+                            shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+                            padding: MaterialStateProperty.all(EdgeInsets.all(12))),
+                            onPressed: () {
+                              _stepController = TextEditingController();
+                              return showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: new Text("Adicione um passo"),
+                                    content: Form(
+                                      child: customTextFormField("Descreva o passo", "", TextInputType.multiline, _stepController),
+                                    ),
+                                    actions: <Widget>[
+                                      ElevatedButton(
+                                        style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.teal)),
+                                        child: Column(
+                                          children: [
+                                            Text("Ok")
+                                          ],
+                                        ),
+                                        onPressed: () {
+                                          var calc = snapshot.data.data.length + 1;
+                                          addSteps(_stepController.text, calc);
+                                          Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(
+                                              settings: RouteSettings(name: '/view_steps'),
+                                              builder: (BuildContext context) {
+                                                return ViewSteps();
+                                              },
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children:[
+                                    Text(
+                                      'Adicionar passos', 
+                                      style: TextStyle(
+                                        color: Colors.white
+                                      )
+                                    ),
+                                    Icon(
+                                      Icons.add_rounded,
+                                      color: Colors.white,
+                                    )
+                                  ]
+                                ),
+
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 80,
+                        width: double.infinity,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16.0),
+                          child: ElevatedButton(
+                            style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.teal.shade300), 
+                            shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+                            padding: MaterialStateProperty.all(EdgeInsets.all(12))),
+                            onPressed: () {
+                              _stepController = TextEditingController();
+                              return showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: new Text("Adicione um passo"),
+                                    content: Form(
+                                      child: customTextFormField("Descreva o passo", "", TextInputType.multiline, _stepController),
+                                    ),
+                                    actions: <Widget>[
+                                      ElevatedButton(
+                                        style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.teal)),
+                                        child: Column(
+                                          children: [
+                                            Text("Ok")
+                                          ],
+                                        ),
+                                        onPressed: () {
+                                          var calc = snapshot.data.data.length + 1;
+                                          addSteps(_stepController.text, calc);
+                                          Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(
+                                              settings: RouteSettings(name: '/view_steps'),
+                                              builder: (BuildContext context) {
+                                                return ViewSteps();
+                                              },
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children:[
+                                    Text(
+                                      'Concluir receita  ', 
+                                      style: TextStyle(
+                                        color: Colors.white
+                                      )
+                                    ),
+                                    Icon(
+                                      Icons.playlist_add_check_rounded,
+                                      color: Colors.white,
+                                    )
+                                  ]
+                                ),
+
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
 
                     ],
                   );
@@ -216,7 +413,6 @@ Widget customTextFormField(label, hint, inputtype, controller){
   return TextFormField(
     keyboardType: inputtype,
     autofocus: true,
-    expands: true,
     maxLines: 5,
     minLines: 1,
     controller: controller,

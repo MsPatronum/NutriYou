@@ -35,7 +35,7 @@
 	if($stmt->execute()){*/
 	
 		//fetching the user back
-		$select = $mysqli->prepare("SELECT receita_id, rp_numero, rp_desc FROM receita_passos WHERE receita_id = ? ORDER BY rp_numero desc");
+		$select = $mysqli->prepare("SELECT receita_id, rp_numero, rp_desc FROM receita_passos WHERE receita_id = ? ORDER BY rp_numero asc");
 		$select->bind_param("s",$receita_id);
 		if($select->execute()){
 			$select->bind_result($receita_id, $stepnum, $stepdesc);

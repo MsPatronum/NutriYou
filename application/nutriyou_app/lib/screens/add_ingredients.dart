@@ -4,13 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:nutriyou_app/const.dart';
-import 'package:nutriyou_app/Widgets/WidgetRefeicao_MealDetail.dart';
 import 'package:nutriyou_app/models/searchIngredientsModel.dart';
 import 'package:nutriyou_app/screens/detail_ingredient.dart';
-import 'package:nutriyou_app/screens/register.dart';
 import 'package:nutriyou_app/screens/view_ingredients.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -213,7 +210,7 @@ class _IngredientAddState extends State<IngredientAdd> {
                                                     MaterialPageRoute(
                                                       settings: RouteSettings(name: '/view_ingredients'),
                                                       builder: (BuildContext context) {
-                                                        return new ViewIngredients();
+                                                        return ViewIngredients();
                                                       },
                                                     ),
                                                   );

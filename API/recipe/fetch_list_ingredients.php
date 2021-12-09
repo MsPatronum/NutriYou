@@ -29,7 +29,7 @@
 			    v.energy_kcal,
 			    v.energy_kj
 		FROM v_ingredientes v
-		where v.ingredientes_desc like '%$search_query%' ";
+		where v.ingredientes_desc like '%$search_query%' LIMIT 10";
 
 	 	$result = $mysqli->query($CheckSQL);
 

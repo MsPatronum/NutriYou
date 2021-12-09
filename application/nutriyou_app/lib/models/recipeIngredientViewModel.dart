@@ -1,36 +1,32 @@
 // To parse this JSON data, do
 //
-//     final ingredienteReceitaModel = ingredienteReceitaModelFromJson(jsonString);
+//     final ingredienteRecipeViewModel = ingredienteRecipeViewModelFromJson(jsonString);
 
 import 'dart:convert';
 
-IngredienteReceitaModel ingredienteReceitaModelFromJson(String str) => IngredienteReceitaModel.fromJson(json.decode(str));
+IngredienteRecipeViewModel ingredienteRecipeViewModelFromJson(String str) => IngredienteRecipeViewModel.fromJson(json.decode(str));
 
-String ingredienteReceitaModelToJson(IngredienteReceitaModel data) => json.encode(data.toJson());
+String ingredienteRecipeViewModelToJson(IngredienteRecipeViewModel data) => json.encode(data.toJson());
 
-class IngredienteReceitaModel {
-    IngredienteReceitaModel({
+class IngredienteRecipeViewModel {
+    IngredienteRecipeViewModel({
         this.error,
-        this.cod,
         this.message,
         this.data,
     });
 
     bool error;
-    int cod;
     String message;
     List<Datum> data;
 
-    factory IngredienteReceitaModel.fromJson(Map<String, dynamic> json) => IngredienteReceitaModel(
+    factory IngredienteRecipeViewModel.fromJson(Map<String, dynamic> json) => IngredienteRecipeViewModel(
         error: json["error"] == null ? null : json["error"],
-        cod: json["cod"] == null ? null : json["cod"],
         message: json["message"] == null ? null : json["message"],
         data: json["data"] == null ? null : List<Datum>.from(json["data"].map((x) => Datum.fromJson(x))),
     );
 
     Map<String, dynamic> toJson() => {
         "error": error == null ? null : error,
-        "cod": cod == null ? null : cod,
         "message": message == null ? null : message,
         "data": data == null ? null : List<dynamic>.from(data.map((x) => x.toJson())),
     };
@@ -41,7 +37,6 @@ class Datum {
         this.receitaId,
         this.ingredientesId,
         this.ingredientesDesc,
-        this.receitaIngredientesQtd,
         this.ingredientesBaseQtd,
         this.ingredientesBaseUnity,
         this.humidityQtd,
@@ -61,7 +56,6 @@ class Datum {
     int receitaId;
     int ingredientesId;
     String ingredientesDesc;
-    double receitaIngredientesQtd;
     double ingredientesBaseQtd;
     String ingredientesBaseUnity;
     double humidityQtd;
@@ -81,7 +75,6 @@ class Datum {
         receitaId: json["receita_id"] == null ? null : json["receita_id"],
         ingredientesId: json["ingredientes_id"] == null ? null : json["ingredientes_id"],
         ingredientesDesc: json["ingredientes_desc"] == null ? null : json["ingredientes_desc"],
-        receitaIngredientesQtd: json["receita_ingredientes_qtd"] == null ? null : json["receita_ingredientes_qtd"].toDouble(),
         ingredientesBaseQtd: json["ingredientes_base_qtd"] == null ? null : json["ingredientes_base_qtd"].toDouble(),
         ingredientesBaseUnity: json["ingredientes_base_unity"] == null ? null : json["ingredientes_base_unity"],
         humidityQtd: json["humidity_qtd"] == null ? null : json["humidity_qtd"].toDouble(),
@@ -102,7 +95,6 @@ class Datum {
         "receita_id": receitaId == null ? null : receitaId,
         "ingredientes_id": ingredientesId == null ? null : ingredientesId,
         "ingredientes_desc": ingredientesDesc == null ? null : ingredientesDesc,
-        "receita_ingredientes_qtd": receitaIngredientesQtd == null ? null : receitaIngredientesQtd,
         "ingredientes_base_qtd": ingredientesBaseQtd == null ? null : ingredientesBaseQtd,
         "ingredientes_base_unity": ingredientesBaseUnity == null ? null : ingredientesBaseUnity,
         "humidity_qtd": humidityQtd == null ? null : humidityQtd,

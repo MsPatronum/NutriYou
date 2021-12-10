@@ -66,7 +66,7 @@ Future addSteps(step_desc, step_nr) async {
         elevation: 0,
         leading: GestureDetector(
             onTap: () {
-                Navigator.popUntil(context, ModalRoute.withName('/home'));
+                Navigator.pop(context);
             },
             child: Padding(
               padding: EdgeInsets.only(left: 15),

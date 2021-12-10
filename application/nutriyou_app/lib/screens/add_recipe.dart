@@ -11,12 +11,33 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AddRecipe extends StatefulWidget {
   //const AddRecipe({ Key? key }) : super(key: key);
+final CheckBoxModel item;
 
+  const AddRecipe({Key key, this.item}) : super(key: key);
   @override
   _AddRecipeState createState() => _AddRecipeState();
 }
 
 class _AddRecipeState extends State<AddRecipe> {
+  final List<CheckBoxModel> dieta = [
+    CheckBoxModel(cod: 1, texto: "Sem açúcar"), 
+    CheckBoxModel(cod: 2, texto: "Vegano"), 
+    CheckBoxModel(cod: 3, texto: "Sem lactose"), 
+    CheckBoxModel(cod: 4, texto: "Sem glúten"), 
+    CheckBoxModel(cod: 5, texto: "Vegetariano"), 
+    CheckBoxModel(cod: 6, texto: "Sem ovos"), 
+    CheckBoxModel(cod: 7, texto: "Sem gordura trans"), 
+  ];
+
+  final List<CheckBoxModel> refeicao = [
+    CheckBoxModel(cod: 1,	texto: "Café da Manhã"),
+    CheckBoxModel(cod: 2,	texto: "Lanche da Manhã"),
+    CheckBoxModel(cod: 3,	texto: "Almoço"),
+    CheckBoxModel(cod: 4,	texto: "Lanche da Tarde"),
+    CheckBoxModel(cod: 5,	texto: "Jantar"),
+    CheckBoxModel(cod: 6,	texto: "Lanche da Noite"),
+  ];
+  
   final _formKey = GlobalKey<FormState>();
   var _recipeNameController = TextEditingController();
   var _recipeDescController = TextEditingController();
@@ -43,6 +64,11 @@ class _AddRecipeState extends State<AddRecipe> {
     NumberFormat formatter = NumberFormat("00");
     print(recipeHour + "recipe hour");
     var tempoPreparo = formatter.format(int.parse(recipeHour))+":"+formatter.format(int.parse(recipeMin))+":"+"00";
+    var l_dieta = List.from(dieta.where((item) => item.checked));
+    var l_refeicao = List.from(refeicao.where((item) => item.checked));
+
+    List dietaMarcados = l_dieta.map((value) => value.cod).toList();
+    List refeicaoMarcados = l_refeicao.map((value) => value.cod).toList();
 
     var url = link("recipe/new_recipe.php");
 
@@ -57,14 +83,16 @@ class _AddRecipeState extends State<AddRecipe> {
       'receita_nome': recipeName,
       'receita_desc': recipeDesc,
       'receita_modo': privacidade,
-      'receita_status': '0'};
+      'receita_status': '0',
+      'dieta': dietaMarcados,
+      'momento': refeicaoMarcados
+      };
 
-    var response = await  http.post(url, body: json.encode(data));
+    var response = await  http.post(Uri.parse(url), body: json.encode(data));
     
-    print(data);
     var message = recipeAddFromJson(response.body);
-
-    prefs.setInt('receita_id', message.data.receitaId);
+    print(response.body);
+    //prefs.setInt('receita_id', message.data.receitaId);
 
   }
 
@@ -76,7 +104,7 @@ class _AddRecipeState extends State<AddRecipe> {
     if(receita_id != null){
       var url = link('recipe/remove_recipe.php');
       var data = {'receita_id': receita_id};
-      var response = await  http.post(url, body: json.encode(data));
+      var response = await  http.post(Uri.parse(url), body: json.encode(data));
       prefs.remove('receita_id');
     }
   }
@@ -269,6 +297,64 @@ class _AddRecipeState extends State<AddRecipe> {
                           ),
                         ),
                       ),
+                      Column(
+                        children: [
+                          Container(
+                            child: InputDecorator(
+                              decoration: InputDecoration(
+                                contentPadding: EdgeInsets.fromLTRB(10.0, 15.0, 20.0, 15.0),
+                                labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 19),
+                                labelText: 'Tipo de alimento',
+                                enabledBorder: InputBorder.none
+                              ),
+                              child: ListView.builder(
+                                physics: BouncingScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: dieta.length,
+                                itemBuilder: (_, int index){
+                                  return CheckboxListTile(
+                                    activeColor: Colors.teal.shade400,
+                                    title: Text(dieta[index].texto),
+                                    value: dieta[index].checked,
+                                    onChanged: (bool value){
+                                      setState((){
+                                        dieta[index].checked = value;
+                                      });
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          Container(
+                            child: InputDecorator(
+                              decoration: InputDecoration(
+                                contentPadding: EdgeInsets.fromLTRB(10.0, 15.0, 20.0, 15.0),
+                                labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 19),
+                                labelText: 'Refeições indicadas',
+                                enabledBorder: InputBorder.none
+                              ),
+                              child: ListView.builder(
+                                physics: BouncingScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: refeicao.length,
+                                itemBuilder: (_, int index){
+                                  return CheckboxListTile(
+                                    activeColor: Colors.teal.shade400,
+                                    title: Text(refeicao[index].texto),
+                                    value: refeicao[index].checked,
+                                    onChanged: (bool value){
+                                      setState((){
+                                        refeicao[index].checked = value;
+                                      });
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                       SizedBox(
                         height: 80,
                         width: double.infinity,
@@ -279,9 +365,10 @@ class _AddRecipeState extends State<AddRecipe> {
                             shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
                             padding: MaterialStateProperty.all(EdgeInsets.all(12))),
                             onPressed: () {
-                              //print(ModalRoute.of(context).settings.name);
+                              
+                              
                               addRecipe();
-                              Navigator.pushReplacement(
+                              /*Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
                                   settings: RouteSettings(name: '/view_ingredients'),
@@ -289,7 +376,7 @@ class _AddRecipeState extends State<AddRecipe> {
                                     return new ViewIngredients();
                                   },
                                 ),
-                              );
+                              );*/
 
                               //Navigator.of(context).popUntil(ModalRoute.withName(HomeViewRoute));
                             },
@@ -380,4 +467,13 @@ Widget customTextFormField(label, hint, inputtype, controller, maxlength){
       ),
     ),
   );
+}
+
+class CheckBoxModel{
+  
+  CheckBoxModel({this.cod, this.texto, this.checked = false});
+  
+  String texto;
+  int cod;
+  bool checked;
 }

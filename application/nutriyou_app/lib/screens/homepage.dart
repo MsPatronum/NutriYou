@@ -16,8 +16,6 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-
-
   var urlFetchday = link('day/fetch_day.php');
   var urlFetchMealsDay = link('day/fetch_meals_day.php');
   
@@ -29,7 +27,7 @@ Future<MacrosMessage> fetchMacros() async {
   String datem = DateFormat("yyyy-MM-dd").format(DateTime.now());
 
   var data = {'user_id': userId, 'date' : datem};
-  var response = await http.post(urlFetchday, body: json.encode(data));
+  var response = await http.post(Uri.parse(urlFetchday), body: json.encode(data));
 
     if (response.statusCode == 200) {
 
@@ -51,7 +49,7 @@ Future<ItensRefeicaoMessage> fetchMeals(int idrefeicao) async {
   String datem = DateFormat("yyyy-MM-dd").format(DateTime.now());
 
   var data = {'user_id': userId, 'date' : datem, 'refeicao_cod': idrefeicao};
-  var response = await http.post(urlFetchMealsDay, body: json.encode(data));
+  var response = await http.post(Uri.parse(urlFetchMealsDay), body: json.encode(data));
 
     if (response.statusCode == 200) {
       

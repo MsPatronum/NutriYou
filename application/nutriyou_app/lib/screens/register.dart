@@ -58,7 +58,7 @@ class _RegisterUserState extends State<RegisterUser> {
  
    print (data);
   // Starting Web API Call.
-  var response = await http.post(url, body: json.encode(data));
+  var response = await http.post(Uri.parse(url), body: json.encode(data));
 
   print(response.toString());
  

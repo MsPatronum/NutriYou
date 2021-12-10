@@ -51,7 +51,7 @@ Future<LoginMessage> userLogin() async{
   var data = {'email': email, 'senha' : password};
  
   // Starting Web API Call.
-  var response = await http.post(url, body: json.encode(data));
+  var response = await http.post(Uri.parse(url), body: json.encode(data));
  print(response.body);
   // If the Response Message is Matched.
   

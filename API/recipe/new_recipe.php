@@ -3,7 +3,7 @@
 	
 	include(conexao);
 	
-	$keys=array('usuario_id','nivel_receita_id','receita_tempo_preparo','receita_porcoes','receita_nome','receita_desc','receita_modo','receita_status');
+	$keys=array('usuario_id','nivel_receita_id','receita_tempo_preparo','receita_porcoes','receita_nome','receita_desc','receita_modo','receita_status', 'dieta', 'momento');
 	
 	//
 	for ($i = 0; $i < count($keys); $i++){
@@ -25,7 +25,9 @@
 	$usuario_id = $obj['usuario_id'];
 	$modo = $obj['receita_modo'];
 	$status = $obj['receita_status'];
-	
+	$dietas = $obj['dieta'];
+	$momentos = $obj['momento'];
+
 	
 	// DADOS PARA TESTE
 	/*$nome = 'Arroz na panela';
@@ -50,6 +52,12 @@
 		$stmt->execute();
 		$stmt->bind_result($receita_id, $usuario_id, $nivel, $tempo_preparo, $porcoes, $nome, $descricao, $modo, $status);
 		$stmt->fetch();
+			$ar_dieta = [];
+			foreach($dietas as $elem)  {
+				print($elem);
+				
+				$ar_dieta[] = $elem;
+			}		
 	
 		$recipe = array(
 			'receita_id' => $receita_id,
@@ -60,7 +68,8 @@
 			'modo' => $modo,
 			'tempo_preparo' => $tempo_preparo,
 			'porcoes' => $porcoes,
-			'status'=>$status
+			'status'=>$status,
+			'momento' => $ar_dieta
 		);
 	
 		$stmt->close();

@@ -30,7 +30,7 @@ class _ViewIngredientsState extends State<ViewIngredients> {
 
     var data = {'usuario_id': userId, 'receita_id': receitaId};
 
-    var response = await  http.post(url, body: json.encode(data));
+    var response = await  http.post(Uri.parse(url), body: json.encode(data));
     print(data);
     if(response.statusCode == 200){
       var message = ingredienteReceitaModelFromJson(response.body);
@@ -50,7 +50,7 @@ class _ViewIngredientsState extends State<ViewIngredients> {
 
     var data = {'receita_id': receitaId};
 
-    var response = await  http.post(url, body: json.encode(data));
+    var response = await  http.post(Uri.parse(url), body: json.encode(data));
 
     print(data);
     if(response.statusCode == 200){
@@ -70,7 +70,7 @@ class _ViewIngredientsState extends State<ViewIngredients> {
 
     var data = {'receita_id': receitaId, 'ingrediente_id': ingrediente_id};
 
-    var response = await  http.post(url, body: json.encode(data));
+    var response = await  http.post(Uri.parse(url), body: json.encode(data));
   }
 
   Future removeRecipeId(int recipeId) async {
@@ -124,7 +124,6 @@ class _ViewIngredientsState extends State<ViewIngredients> {
                                 if(snapshoting.hasData){
                                   // ignore: unrelated_type_equality_checks
                                   if(snapshoting.data.message == 'Ingrediente retornado com sucesso.'){
-                                    
                                     return Container(
                                       child: ListView.builder(
                                         shrinkWrap: true,

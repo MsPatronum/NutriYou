@@ -27,7 +27,7 @@ Future<StepListModel> fetchSteps() async {
 
   var data = {'receita_id': receitaId};
 
-  var response = await  http.post(url, body: json.encode(data)); print(response.body);
+  var response = await  http.post(Uri.parse(url), body: json.encode(data)); print(response.body);
   print(data);
   if(response.statusCode == 200){
     
@@ -47,7 +47,7 @@ Future addSteps(step_desc, step_nr) async {
 
   var data = {'receita_id': receitaId, 'rp_numero' : step_nr, 'rp_desc': step_desc} ;
 
-  var response = await  http.post(url, body: json.encode(data));
+  var response = await  http.post(Uri.parse(url), body: json.encode(data));
 
   if(response.statusCode == 200){
     
@@ -228,43 +228,7 @@ Future addSteps(step_desc, step_nr) async {
                             style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.teal.shade300), 
                             shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
                             padding: MaterialStateProperty.all(EdgeInsets.all(12))),
-                            onPressed: () {
-                              _stepController = TextEditingController();
-                              return showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: new Text("Adicione um passo"),
-                                    content: Form(
-                                      child: customTextFormField("Descreva o passo", "", TextInputType.multiline, _stepController),
-                                    ),
-                                    actions: <Widget>[
-                                      ElevatedButton(
-                                        style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.teal)),
-                                        child: Column(
-                                          children: [
-                                            Text("Ok")
-                                          ],
-                                        ),
-                                        onPressed: () {
-                                          var calc = snapshot.data.data.length + 1;
-                                          addSteps(_stepController.text, calc);
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(
-                                              settings: RouteSettings(name: '/view_steps'),
-                                              builder: (BuildContext context) {
-                                                return ViewSteps();
-                                              },
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
+                            onPressed: () {},
                             child: Column(
                               children: [
                                 Row(

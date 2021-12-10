@@ -92,7 +92,7 @@ class _AddRecipeState extends State<AddRecipe> {
     
     var message = recipeAddFromJson(response.body);
     print(response.body);
-    //prefs.setInt('receita_id', message.data.receitaId);
+    prefs.setInt('receita_id', message.data.receitaId);
 
   }
 
@@ -365,10 +365,8 @@ class _AddRecipeState extends State<AddRecipe> {
                             shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
                             padding: MaterialStateProperty.all(EdgeInsets.all(12))),
                             onPressed: () {
-                              
-                              
                               addRecipe();
-                              /*Navigator.pushReplacement(
+                              Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
                                   settings: RouteSettings(name: '/view_ingredients'),
@@ -376,8 +374,7 @@ class _AddRecipeState extends State<AddRecipe> {
                                     return new ViewIngredients();
                                   },
                                 ),
-                              );*/
-
+                              );
                               //Navigator.of(context).popUntil(ModalRoute.withName(HomeViewRoute));
                             },
                             child: Row(

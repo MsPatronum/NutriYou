@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:nutriyou_app/const.dart';
 import 'package:nutriyou_app/models/StepListModel.dart';
+import 'package:nutriyou_app/screens/viewRecipeImages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ViewSteps extends StatefulWidget {
@@ -98,6 +99,7 @@ Future addSteps(step_desc, step_nr) async {
                         itemBuilder: (BuildContext context, int index){
                           var data = snapshot.data.data;
                           return Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Container(
                                 margin: EdgeInsets.only(bottom: 15),
@@ -122,6 +124,7 @@ Future addSteps(step_desc, step_nr) async {
                                           width: MediaQuery.of(context).size.width * 0.1,
                                           child: Text("Passo \n"+data[index].rpNumero.toString(), textAlign: TextAlign.center,)
                                         ),
+                                        SizedBox(width: 5,),
                                         Container(
                                           width: MediaQuery.of(context).size.width * 0.6,
                                           child: Column(
@@ -228,7 +231,17 @@ Future addSteps(step_desc, step_nr) async {
                             style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.teal.shade300), 
                             shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
                             padding: MaterialStateProperty.all(EdgeInsets.all(12))),
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  settings: RouteSettings(name: '/add_images'),
+                                  builder: (BuildContext context) {
+                                    return new ViewImages();
+                                  },
+                                ),
+                              );
+                            },
                             child: Column(
                               children: [
                                 Row(

@@ -52,13 +52,25 @@
 		$stmt->execute();
 		$stmt->bind_result($receita_id, $usuario_id, $nivel, $tempo_preparo, $porcoes, $nome, $descricao, $modo, $status);
 		$stmt->fetch();
-			$ar_dieta = [];
-			foreach($dietas as $elem)  {
-				print($elem);
-				
-				$ar_dieta[] = $elem;
-			}		
-	
+					
+		$stmt->close();
+		
+		$ar_dieta = [];
+		foreach($dietas as $elem)  {
+			$var = $elem;
+			$InsertQuery = "INSERT INTO receita_categorias(receita_id, categoria_id) value($receita_id, $elem)";
+		    $executa=$mysqli->query($InsertQuery);
+			$error=$mysqli->error;
+			$ar_dieta[] = $elem;
+		}
+		$ar_momento = [];
+		foreach($momentos as $elem)  {
+			$var = $elem;
+			$InsertQuery = "INSERT INTO receita_momentos(receita_id, momento_id) value($receita_id, $elem)";
+		    $executa=$mysqli->query($InsertQuery);
+			$error=$mysqli->error;
+			$ar_momento[] = $elem;
+		}
 		$recipe = array(
 			'receita_id' => $receita_id,
 			'usuario_id' => $usuario_id,
@@ -69,10 +81,11 @@
 			'tempo_preparo' => $tempo_preparo,
 			'porcoes' => $porcoes,
 			'status'=>$status,
-			'momento' => $ar_dieta
+			'categoria' => $ar_dieta,
+			'refeicao'=>$ar_momento
 		);
 	
-		$stmt->close();
+		
 	
 		//adding the recipe data in response
 		$response['error'] = false;

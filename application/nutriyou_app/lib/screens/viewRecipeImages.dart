@@ -12,66 +12,50 @@ class ViewImages extends StatefulWidget {
 }
 
 class _ViewImagesState extends State<ViewImages> {
-  var _image;
-  var imagePicker;
-  var type;
+ 
+  final ImagePicker imagePicker = ImagePicker();
+  List<XFile> imageFileList = [];
 
-  @override
-  void initState() {
-    super.initState();
-    imagePicker = new ImagePicker();
+  void selectImages() async {
+    final List<XFile> selectedImages = await imagePicker.pickMultiImage();
+    if (selectedImages.isNotEmpty) {
+      imageFileList.addAll(selectedImages);
+    }
+    print("Image List Length:" + imageFileList.length.toString());
+    setState((){});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
-          child: Column(
-            children: [
-              SizedBox(
-                height: 52,
-              ),
-              Center(
-                child: GestureDetector(
-                  onTap: () async {
-                    var source = ImageSource.gallery;
-                    XFile image = await imagePicker.pickImage(
-                        source: source, imageQuality: 50, preferredCameraDevice: CameraDevice.front);
-                    setState(() {
-                      _image = File(image.path);
-                    });
-                  },
-                  child: Container(
-                    width: 200,
-                    height: 200,
-                    decoration: BoxDecoration(
-                        color: Colors.red[200]),
-                    child: _image != null
-                        ? Image.file(
-                              _image,
-                              width: 200.0,
-                              height: 200.0,
-                              fit: BoxFit.fitHeight,
-                            )
-                        : Container(
-                            decoration: BoxDecoration(
-                                color: Colors.red[200]),
-                            width: 200,
-                            height: 200,
-                            child: Icon(
-                              Icons.camera_alt,
-                              color: Colors.grey[800],
-                            ),
-                          ),
-                  ),
-                ),
-              )
-            ],
-          ),
-        ),
+      appBar: AppBar(
+        title: Text('Multiple Images'),
       ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                selectImages();
+              },
+              child: Text('Select Images'),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: GridView.builder(
+                  itemCount: imageFileList.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3),
+                    itemBuilder: (BuildContext context, int index) {
+                      print(imageFileList[index].name + "aqui");
+                      return Image.file(File(imageFileList[index].path), fit: BoxFit.cover,);
+                    }),
+              ),
+            ),
+          ],
+        ),
+      )
     );
   }
 }

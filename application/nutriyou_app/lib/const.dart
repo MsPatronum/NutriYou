@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-var constUrl = '192.168.1.124';
+var constUrl = '172.17.208.1';
 
 link(String page){
-  return ('http://'+ constUrl +'/NutriYou/API/'+page);
+  return Uri.parse('http://'+ constUrl +'/NutriYou/API/'+page);
 }
 linkImages(String path){
   return('http://' + constUrl + '/NutriYou/images/' + path);

@@ -271,13 +271,13 @@ Future addSteps(step_desc, step_nr) async {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children:[
                                     Text(
-                                      'Concluir receita  ', 
+                                      'Próximo', 
                                       style: TextStyle(
                                         color: Colors.white
                                       )
                                     ),
                                     Icon(
-                                      Icons.playlist_add_check_rounded,
+                                      Icons.arrow_forward_outlined,
                                       color: Colors.white,
                                     )
                                   ]

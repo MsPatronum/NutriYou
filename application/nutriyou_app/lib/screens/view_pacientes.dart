@@ -8,15 +8,15 @@ import 'package:nutriyou_app/models/patientsListModel.dart';
 import 'package:nutriyou_app/screens/viewRecipeImages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class ViewSteps extends StatefulWidget {
+class ViewPatient extends StatefulWidget {
   //const AddRecipe({ Key? key }) : super(key: key);
 
   @override
-  _ViewStepsState createState() => _ViewStepsState();
+  _ViewPatientState createState() => _ViewPatientState();
 }
 
-class _ViewStepsState extends State<ViewSteps> {
-  var _stepController = TextEditingController();
+class _ViewPatientState extends State<ViewPatient> {
+  var _patientController = TextEditingController();
 
 
 Future<ListPatientsModel> fetchPatients() async {
@@ -39,14 +39,32 @@ Future<ListPatientsModel> fetchPatients() async {
   }
 }
 
-Future addPatient(step_desc, step_nr) async {
+Future addPatient(token) async {
     
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  var receitaId = prefs.getInt('receita_id');
+  var usuarioId = prefs.getInt('id');
 
-  var url = link("recipe/add_steps.php");
+  var url = link("profissional/add_patient.php");
 
-  var data = {'receita_id': receitaId, 'rp_numero' : step_nr, 'rp_desc': step_desc} ;
+  var data = {'profissional': usuarioId, 'token' : token} ;
+
+  var response = await  http.post(Uri.parse(url), body: json.encode(data));
+
+  if(response.statusCode == 200){
+    
+  }else{
+    throw Exception('Falha ao carregar');
+  }
+}
+
+Future removePatient(token) async {
+    
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  var usuarioId = prefs.getInt('id');
+
+  var url = link("profissional/remove_patient.php");
+
+  var data = {'profissional': usuarioId, 'token' : token} ;
 
   var response = await  http.post(Uri.parse(url), body: json.encode(data));
 
@@ -135,7 +153,16 @@ Future addPatient(step_desc, step_nr) async {
                                       width: MediaQuery.of(context).size.width * 0.09,
                                       child: IconButton(
                                         onPressed: (){
-
+                                          removePatient(data[index].pacienteToken);
+                                          Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(
+                                              settings: RouteSettings(name: '/view_patients'),
+                                              builder: (BuildContext context) {
+                                                return ViewPatient();
+                                              },
+                                            ),
+                                          );
                                         }, 
                                         icon: Icon(Icons.delete_rounded), 
                                         color: Colors.pink,
@@ -158,14 +185,14 @@ Future addPatient(step_desc, step_nr) async {
                             shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
                             padding: MaterialStateProperty.all(EdgeInsets.all(12))),
                             onPressed: () {
-                              _stepController = TextEditingController();
+                              _patientController = TextEditingController();
                               return showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
                                   return AlertDialog(
                                     title: new Text("Adicione um paciente"),
                                     content: Form(
-                                      child: customTextFormField("Insira o token do seu paciente", "", TextInputType.multiline, _stepController),
+                                      child: customTextFormField("Insira o token do seu paciente", "", TextInputType.multiline, _patientController),
                                     ),
                                     actions: <Widget>[
                                       ElevatedButton(
@@ -176,17 +203,38 @@ Future addPatient(step_desc, step_nr) async {
                                           ],
                                         ),
                                         onPressed: () {
-                                          //var calc = snapshot.data.data.length + 1;
-                                          //addSteps(_stepController.text, calc);
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(
-                                              settings: RouteSettings(name: '/view_steps'),
-                                              builder: (BuildContext context) {
-                                                return ViewSteps();
-                                              },
-                                            ),
-                                          );
+                                          if(snapshot.data.data.listPatients.any((element) => element.pacienteToken == _patientController.value.text)){
+                                            Navigator.pop(context);
+                                            return showDialog(
+                                              context: context, 
+                                              builder: (BuildContext context){
+                                                return AlertDialog(
+                                                  title: Text("Paciente já cadastrado em sua base!"),
+                                                  actions: [
+                                                    ElevatedButton(
+                                                      style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.teal)),
+                                                      onPressed: (){
+                                                        Navigator.pop(context);
+                                                        }, 
+                                                      child: Text("Ok")
+                                                    )
+                                                  ],
+                                                );
+                                              }
+                                            );
+                                          }else{
+                                            //var calc = snapshot.data.data.length + 1;
+                                            addPatient(_patientController.text);
+                                            Navigator.pushReplacement(
+                                              context,
+                                              MaterialPageRoute(
+                                                settings: RouteSettings(name: '/view_patients'),
+                                                builder: (BuildContext context) {
+                                                  return ViewPatient();
+                                                },
+                                              ),
+                                            );
+                                          }
                                         },
                                       ),
                                     ],
@@ -242,14 +290,14 @@ Future addPatient(step_desc, step_nr) async {
                             shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
                             padding: MaterialStateProperty.all(EdgeInsets.all(12))),
                             onPressed: () {
-                              _stepController = TextEditingController();
+                              _patientController = TextEditingController();
                               return showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
                                   return AlertDialog(
                                     title: new Text("Adicione um paciente"),
                                     content: Form(
-                                      child: customTextFormField("Insira o token do seu paciente", "", TextInputType.multiline, _stepController),
+                                      child: customTextFormField("Insira o token do seu paciente", "", TextInputType.multiline, _patientController),
                                     ),
                                     actions: <Widget>[
                                       ElevatedButton(
@@ -260,13 +308,14 @@ Future addPatient(step_desc, step_nr) async {
                                           ],
                                         ),
                                         onPressed: () {
-                                          //addSteps(_stepController.text, 1);
+                                          addPatient(_patientController.text);
+                                          print(_patientController.text);
                                           Navigator.pushReplacement(
                                             context,
                                             MaterialPageRoute(
-                                              settings: RouteSettings(name: '/view_steps'),
+                                              settings: RouteSettings(name: '/view_patients'),
                                               builder: (BuildContext context) {
-                                                return ViewSteps();
+                                                return ViewPatient();
                                               },
                                             ),
                                           );
@@ -283,7 +332,7 @@ Future addPatient(step_desc, step_nr) async {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children:[
                                     Text(
-                                      'Adicionar passos', 
+                                      'Adicionar paciente', 
                                       style: TextStyle(
                                         color: Colors.white
                                       )

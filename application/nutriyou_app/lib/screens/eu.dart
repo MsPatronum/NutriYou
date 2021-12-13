@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:nutriyou_app/const.dart';
 import 'package:nutriyou_app/routing_constants.dart';
 import 'package:nutriyou_app/screens/login.dart';
+import 'package:nutriyou_app/screens/view_pacientes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MeView extends StatefulWidget {
@@ -90,7 +91,17 @@ class _MeViewState extends State<MeView> {
                       ProfileMenu(
                         text: "Meus Pacientes",
                         icon: Icons.person_search_rounded,
-                        press: () {},
+                        press: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              settings: RouteSettings(name: '/view_patients'),
+                              builder: (BuildContext context){
+                                return ViewPatient();
+                              }
+                            )
+                          );
+                        },
                         visivel: snapshot.data['tipo'] == 1? true : false,
                       ),
                       ProfileMenu(

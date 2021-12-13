@@ -26,7 +26,7 @@ $stmt = $mysqli->prepare("SELECT * FROM usuario WHERE usuario_email = ? AND usua
 					$stmt->store_result();
 					if($stmt->num_rows > 0){
 
-						$stmt->bind_result( $id,$email,$senha, $nome,$sobrenome,$tipo, $token );
+						$stmt->bind_result( $id,$email,$senha, $nome,$sobrenome,$tipo, $token, $usuario_permit_profissional );
 							$stmt->fetch();
 
 							$user = array(

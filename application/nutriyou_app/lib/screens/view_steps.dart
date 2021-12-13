@@ -237,7 +237,7 @@ Future addSteps(step_desc, step_nr) async {
                                 MaterialPageRoute(
                                   settings: RouteSettings(name: '/add_images'),
                                   builder: (BuildContext context) {
-                                    return new ViewImages();
+                                    return new ImgUpload();
                                   },
                                 ),
                               );

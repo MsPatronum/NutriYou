@@ -69,6 +69,7 @@ Future<LoginMessage> userLogin() async{
       prefs.setInt('id', message.data.id);
       prefs.setString('email', message.data.email);
       prefs.setString('token', message.data.token);
+      prefs.setInt('tipo', message.data.tipo);
       prefs.setString('nome', message.data.nome);
   
       // Navigate to Profile Screen & Sending Email to Next Screen.

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nutriyou_app/const.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MeView extends StatefulWidget {
   //const MeView({ Key? key }) : super(key: key);
@@ -8,6 +10,7 @@ class MeView extends StatefulWidget {
 }
 
 class _MeViewState extends State<MeView> {
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,73 +21,72 @@ class _MeViewState extends State<MeView> {
         ),
         body: SingleChildScrollView(
           padding: EdgeInsets.symmetric(vertical: 20),
-          child: Column(
-            children: [
-              SizedBox(
-                height: 115,
-                width: 115,
-                child: Stack(
-                  fit: StackFit.expand,
-                  overflow: Overflow.visible,
-                  children: [
-                    CircleAvatar(
-                      backgroundImage: AssetImage("images/person.png"),
-                    ),
-                    Positioned(
-                      right: -16,
-                      bottom: 0,
-                      child: SizedBox(
-                        height: 50,
-                        width: 50,
-                        child: ElevatedButton(
-                          style: ButtonStyle(
-                              alignment: Alignment.center,
-                              shape: MaterialStateProperty.all(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(50),
-                                  side: BorderSide(color: Colors.white),
+          child: FutureBuilder(
+            builder: (context, snapshot){
+              return Column(
+              children: [
+                /*SizedBox(
+                  height: 115,
+                  width: 115,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    overflow: Overflow.visible,
+                    children: [
+                      CircleAvatar(
+                        backgroundImage: AssetImage("images/person.png"),
+                      ),
+                      Positioned(
+                        right: -16,
+                        bottom: 0,
+                        child: SizedBox(
+                          height: 50,
+                          width: 50,
+                          child: ElevatedButton(
+                            style: ButtonStyle(
+                                alignment: Alignment.center,
+                                shape: MaterialStateProperty.all(
+                                  RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(50),
+                                    side: BorderSide(color: Colors.white),
+                                  ),
                                 ),
-                              ),
-                              backgroundColor: MaterialStateProperty.all(Colors.grey.shade100)
+                                backgroundColor: MaterialStateProperty.all(Colors.grey.shade100)
+                            ),
+                            onPressed: () {},
+                            child: Icon(Icons.camera, size: 20, color: Colors.teal,),
                           ),
-                          onPressed: () {},
-                          child: Icon(Icons.camera, size: 20, color: Colors.teal,),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                ),*/
+                SizedBox(height: 10),
+                Text(getNome().toString()),
+                Text("nicoleeguido@gmail.com"),
+                Text("ID: 8B0OLBCT6Y"),
+                SizedBox(height: 20),
+                ProfileMenu(
+                  text: "Adicionar Pacientes",
+                  icon: Icons.person_add,
+                  press: () {},
+                  visivel: false,
                 ),
-              ),
-              SizedBox(height: 10),
-              Text("Nicole Esther Guido"),
-              Text("nicoleeguido@gmail.com"),
-              Text("ID: 8B0OLBCT6Y"),
-              SizedBox(height: 20),
-              ProfileMenu(
-                text: "Minha Conta",
-                icon: Icons.person,
-                press: () => {},
-                visivel: true,
-              ),
-              ProfileMenu(
-                text: "Adicionar Pacientes",
-                icon: Icons.person_add,
-                press: () {},
-                visivel: false,
-              ),
-              ProfileMenu(
-                text: "Configurações",
-                icon: Icons.settings,
-                press: () {},
-                visivel: true,
-              ),
-              ProfileMenu(
-                text: "Log Out",
-                icon: Icons.exit_to_app_rounded,
-                press: () {},
-                visivel: true,
-              ),
-            ],
+                ProfileMenu(
+                  text: "Configurações",
+                  icon: Icons.settings,
+                  press: () {},
+                  visivel: true,
+                ),
+                ProfileMenu(
+                  text: "Log Out",
+                  icon: Icons.exit_to_app_rounded,
+                  press: () {},
+                  visivel: true,
+                ),
+              ],
+            );
+            },
+            
           ),
         ));
   }

@@ -169,7 +169,7 @@ class Ingrediente {
     int receitaId;
     int ingredientesId;
     String ingredientesDesc;
-    int receitaIngredientesQtd;
+    double receitaIngredientesQtd;
     int ingredientesBaseQtd;
     String ingredientesBaseUnity;
 
@@ -177,7 +177,7 @@ class Ingrediente {
         receitaId: json["receita_id"] == null ? null : json["receita_id"],
         ingredientesId: json["ingredientes_id"] == null ? null : json["ingredientes_id"],
         ingredientesDesc: json["ingredientes_desc"] == null ? null : json["ingredientes_desc"],
-        receitaIngredientesQtd: json["receita_ingredientes_qtd"] == null ? null : json["receita_ingredientes_qtd"],
+        receitaIngredientesQtd: json["receita_ingredientes_qtd"] == null ? null : json["receita_ingredientes_qtd"].toDouble(),
         ingredientesBaseQtd: json["ingredientes_base_qtd"] == null ? null : json["ingredientes_base_qtd"],
         ingredientesBaseUnity: json["ingredientes_base_unity"] == null ? null : json["ingredientes_base_unity"],
     );

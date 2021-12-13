@@ -1,28 +1,46 @@
 <?php 
-$return["error"] = false;
-$return["msg"] = "";
-//array to return
 
-if(isset($_POST["image"])){
-    $base64_string = $_POST["image"];
-    $outputfile = "uploads/image.jpg" ;
-    //save as image.jpg in uploads/ folder
+    include("../config.php");
+    include(conexao);
 
-    $filehandler = fopen($outputfile, 'wb' ); 
-    //file open with "w" mode treat as text file
-    //file open with "wb" mode treat as binary file
+    $keys=array('receita_id', 'ikvList');
     
-    fwrite($filehandler, base64_decode($base64_string));
-    // we could add validation here with ensuring count($data)>1
+    for ($i = 0; $i < count($keys); $i++){
+        if(!isset($obj[$keys[$i]]))
+         {
+              $response['error'] = true;
+                $response['message'] = 'Required Filed Missed';
+                echo json_encode($response);
+              return;
+         }
+    
+    }
 
-    // clean up the file resource
-    fclose($filehandler); 
-}else{
-    $return["error"] = true;
-    $return["msg"] =  "No image is submited.";
-}
+    $ikvList = $obj['ikvList'];
+    $receita_id = $obj['receita_id'];
 
-header('Content-Type: application/json');
-// tell browser that its a json data
-echo json_encode($return);
-//converting array to JSON string
+    try {
+        foreach($ikvList as $imgKeyValues){
+            foreach($imgKeyValues as $ikv){
+                $fn = $ikv['fn'];
+                $decoded = base64_decode($ikv['encoded']);
+
+                $img = "recipepics/".$fn;
+                
+                $InsertQuery = "INSERT INTO receita_imagens (receita_receita_id, receita_imagens_path) value ($receita_id, '$img')";
+                $executa=$mysqli->query($InsertQuery);
+                $error=$mysqli->error;
+
+                file_put_contents(img_raiz."/recipepics/".$fn, $decoded);
+            }
+        }
+
+        $update = "UPDATE receita set receita_status = 1 where receita_id = $receita_id";
+        $executa=$mysqli->query($update);
+        $error=$mysqli->error;
+
+    } catch(Exception $e) {
+        echo $e->getMessage();
+    }
+
+?>

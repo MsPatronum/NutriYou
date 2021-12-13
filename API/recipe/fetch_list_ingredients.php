@@ -3,8 +3,11 @@
 	include("..\config.php");
 
  	include(conexao);
+ 	include(funcoes);
 
  	$search_query = isset($obj['search_query']) ? $obj['search_query'] : "%";
+ 	$search_query = tirarAcentos(strtolower($search_query));
+
 
  	if($search_query == null){
 
@@ -29,7 +32,7 @@
 			    v.energy_kcal,
 			    v.energy_kj
 		FROM v_ingredientes v
-		where v.ingredientes_desc like '%$search_query%' LIMIT 10";
+		where lower(v.ingredientes_desc) like '%$search_query%' LIMIT 10";
 
 	 	$result = $mysqli->query($CheckSQL);
 

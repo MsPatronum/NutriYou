@@ -3,8 +3,9 @@ class LoginData{
   final String email;
   final String token;
   final String nome;
+  final int tipo;
 
-  LoginData({this.id, this.email, this.token, this.nome});
+  LoginData({this.id, this.email, this.token, this.nome, this.tipo});
 
   factory LoginData.fromJson(Map<String, dynamic> json) {
     return LoginData(
@@ -12,6 +13,7 @@ class LoginData{
       email: json['email'] == null ? "0" : json['email'],
       token : json['token'] == null ? "0" : json['token'],
       nome : json['nome'] == null ? "0" : json['nome'],
+      tipo: json['tipo'] == null ? 0 : json['tipo'],
     );
   }
 }

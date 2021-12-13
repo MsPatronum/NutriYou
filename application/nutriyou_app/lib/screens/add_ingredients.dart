@@ -323,7 +323,7 @@ class _IngredientAddState extends State<IngredientAdd> {
 
 Future _returnFlutterToast() {
   return Fluttertoast.showToast(
-      msg: "Receita adicionada a sua refeição com sucesso!",
+      msg: "Ingrediente adicionada à sua receita com sucesso!",
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.CENTER,
       backgroundColor: Colors.teal.shade50,

@@ -9,9 +9,11 @@ include("../config.php");
  	$idRefeicao = $obj['refeicao_id'];
 	$userId = $obj['user_id'];
 	$receitaId = $obj['cod_receita'];
+	$porcoes = $obj['porcao'];
 	$today = $obj['data'];
 
-	$InsertQuery = "call add_receitanarefeicao($userId, $idRefeicao, $receitaId, '$today', @resultado)";
+	$InsertQuery = "call add_receitanarefeicao($userId, $idRefeicao, $receitaId, $porcoes, '$today', @resposta)";
+
 
 
     $executa=$mysqli->query($InsertQuery);

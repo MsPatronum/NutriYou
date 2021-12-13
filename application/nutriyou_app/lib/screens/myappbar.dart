@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nutriyou_app/app_colors.dart';
+import 'package:nutriyou_app/screens/dashboard.dart';
 import 'package:nutriyou_app/screens/eu.dart';
 import 'package:nutriyou_app/screens/homepage.dart';
 
@@ -17,7 +18,7 @@ class _MyAppBarState extends State<MyAppBar> with SingleTickerProviderStateMixin
 
   List<Widget> _tabList = [
     HomeView(),
-    MeView(),
+    Dashboard(),
     MeView()
 
   ];

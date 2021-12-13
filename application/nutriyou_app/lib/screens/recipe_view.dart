@@ -37,7 +37,7 @@ class _RecipeViewState extends State<RecipeView> {
     if (response.statusCode == 200) {
 
         final recipeView = recipeViewModelFromJson(response.body);
-        //print(response.body);
+        print(response.body);
         return recipeView;
     }
     else {
@@ -153,7 +153,7 @@ class _RecipeViewState extends State<RecipeView> {
       body: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
         child:FutureBuilder<RecipeViewModel>(
-          future: fetchRecipe(1),
+          future: fetchRecipe(widget.idRefeicao),
             builder: (context, snapshot){
               if(snapshot.hasData){
                 List<String> imageList = [linkImages('recipepics/rec1_pic1.jpg'), linkImages('recipepics/rec1_pic2.jpg')];
@@ -306,7 +306,6 @@ class _RecipeViewState extends State<RecipeView> {
                                 ),
                                 itemBuilder: (context, i, id){
                                   List<Imagem> imagem = snapshot.data.imagens ?? [];
-                                  print(imagem[i].receitaImagensPath);
                                   //for onTap to redirect to another screen
                                   return ClipRRect(
                                     borderRadius: BorderRadius.circular(20),
@@ -333,14 +332,13 @@ class _RecipeViewState extends State<RecipeView> {
                             shrinkWrap: true,
                             physics: NeverScrollableScrollPhysics(),
                             itemBuilder: (BuildContext context, int index){
-                              List<Ingrediente> ingrediente = ingredientesReceita ?? [];
-                              var qtd = ingredientesReceita.single.receitaIngredientesQtd * ingredientesReceita.single.ingredientesBaseQtd;
+                              var qtd = ingredientesReceita[index].receitaIngredientesQtd * ingredientesReceita[index].ingredientesBaseQtd;
                               return Container(
                                 width: MediaQuery.of(context).size.width,
                                 child: buildTextIngredient(
-                                  qtd.toString(), 
-                                  ingrediente[index].ingredientesBaseUnity, 
-                                  ingrediente[index].ingredientesDesc
+                                  qtd.toStringAsFixed(0), 
+                                  ingredientesReceita[index].ingredientesBaseUnity, 
+                                  ingredientesReceita[index].ingredientesDesc
                                 )
                               );
                             }

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:nutriyou_app/const.dart';
 import 'package:nutriyou_app/Widgets/WidgetRefeicao_MealDetail.dart';
+import 'package:nutriyou_app/routing_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MealSearch extends StatefulWidget {
@@ -23,6 +24,7 @@ class ReturnMealSearch{
     this.receitaId,
     this.receitaNome,
     this.receitaDescricao,
+    this.receitaPorcoes,
     this.receitaKcal,
     this.receitaNivel,
     this.receitaTempoPrep,
@@ -31,6 +33,7 @@ class ReturnMealSearch{
   int receitaId;
   String receitaNome;
   String receitaDescricao;
+  int receitaPorcoes;
   String receitaTempoPrep;
   String receitaNivel;
   double receitaKcal;
@@ -41,6 +44,7 @@ class ReturnMealSearch{
         receitaId: json["receita_id"] == null ? "0" : json["receita_id"],
         receitaNome: json["receita_nome"] == null ? "0" : json["receita_nome"],
         receitaDescricao: json["receita_desc"] == null ? "0" : json["receita_desc"],
+        receitaPorcoes: json["receita_porcoes"] == null ? 0 : json["receita_porcoes"],
         receitaTempoPrep: json["receita_tempo_preparo"] == null ? "0" : json["receita_tempo_preparo"],
         receitaNivel : json["rn_nivel"] == null ? "0" : json["rn_nivel"],
         receitaKcal: json["energy_kcal"] == null ? "0" : json["energy_kcal"],
@@ -48,6 +52,7 @@ class ReturnMealSearch{
     );}}
 
 class _MealSearchState extends State<MealSearch> {
+  var _portionController = TextEditingController();
 
   String selectedTerm;
 
@@ -76,7 +81,7 @@ class _MealSearchState extends State<MealSearch> {
 
   var url_addreceitaarefeicao = link('day/add_recipeonmeal.php');
 
-  Future addToMeal(int userId, int refeicaoId, int codReceita) async {
+  Future addToMeal(int userId, int refeicaoId, int codReceita, String porcao) async {
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final userId = prefs.getInt('id');
@@ -85,7 +90,7 @@ class _MealSearchState extends State<MealSearch> {
 
     // Navigator.pop(context);
 
-    var data = {'user_id' : userId, 'refeicao_id' : refeicaoId, 'cod_receita': codReceita, 'data': datem};
+    var data = {'user_id' : userId, 'refeicao_id' : refeicaoId, 'cod_receita': codReceita,'porcao': double.parse(porcao), 'data': datem };
     print(data);
 
     var response = await http.post(Uri.parse(url_addreceitaarefeicao), body: json.encode(data));
@@ -149,11 +154,64 @@ class _MealSearchState extends State<MealSearch> {
                             itemBuilder: (BuildContext context, int index) {
                               return GestureDetector(
                                 onTap: (){
-                                  setState(() {
-                                    addToMeal(widget.idUsuario, widget.idRefeicao, snapshotMealSearch.data[index].receitaId);
-                                  });
-
+                                  _portionController = TextEditingController();
+                                  return showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: new Text("Adicione a quantidade de porções ingeridas"),
+                                        content: Container(
+                                          height: MediaQuery.of(context).size.height*0.18,
+                                          child: Column(
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                children: [
+                                                  Column(
+                                                    children: [
+                                                      Text("Limite "),
+                                                      Text(snapshotMealSearch.data[index].receitaPorcoes.toString() + " porções"),
+                                                    ],
+                                                  ),
+                                                  Column(
+                                                    children: [
+                                                      Text(
+                                                        (snapshotMealSearch.data[index].receitaKcal
+                                                        /
+                                                        snapshotMealSearch.data[index].receitaPorcoes
+                                                        ).toStringAsFixed(0) + " kCal"
+                                                      ),
+                                                      Text("por porção"),
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
+                                              Form(
+                                                child: customTextFormField("Informe as porções", "", TextInputType.number, _portionController, snapshotMealSearch.data[index].receitaPorcoes),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        actions: <Widget>[
+                                          ElevatedButton(
+                                            style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.teal)),
+                                            child: Column(
+                                              children: [
+                                                Text("Ok")
+                                              ],
+                                            ),
+                                            onPressed: () {
+                                              addToMeal(widget.idUsuario, widget.idRefeicao, snapshotMealSearch.data[index].receitaId, _portionController.text);
+                                              
+                                              Navigator.pop(context);
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
                                 },
+                              
                                 child: Container(child: WidgetReceicao_MealDetails(
                                   nomeReceita: snapshotMealSearch.data[index].receitaNome.toString(),
                                   tipoAlimento: "Tempo " + snapshotMealSearch.data[index].receitaTempoPrep.toString(),
@@ -255,5 +313,41 @@ Future _returnFlutterToast() {
       gravity: ToastGravity.CENTER,
       backgroundColor: Colors.teal.shade50,
       textColor: Colors.teal
+  );
+}
+
+
+Widget customTextFormField(label, hint, inputtype, controller, limit){
+  return TextFormField(
+    keyboardType: inputtype,
+    autofocus: true,
+    controller: controller,
+    autovalidateMode: AutovalidateMode.onUserInteraction,
+    validator: (String value){
+      if(value.isEmpty){
+        return "Insira dados";
+      }else if(double.parse(value) > limit){
+        return "Quantidade de porções maior\ndo que a receita";
+      }
+        return null;
+    },
+    decoration: InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: Colors.grey.shade600,fontSize: 15),
+      hintText: hint,
+      contentPadding: EdgeInsets.fromLTRB(10.0, 15.0, 20.0, 15.0),
+      border: UnderlineInputBorder(),
+      focusedBorder: UnderlineInputBorder(
+        borderSide: BorderSide(
+          color: Colors.teal.shade700,
+          width: 2.0,
+        ),
+      ),
+      enabledBorder: UnderlineInputBorder(
+        borderSide: BorderSide(
+          color: Colors.teal,
+        ),
+      ),
+    ),
   );
 }

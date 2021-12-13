@@ -5,7 +5,7 @@
  	include(conexao);
  	include(funcoes);
 
- 	$usuario_id = 1;
+ 	$usuario_id = $obj['usuario_id'];
 
  	$CheckSQL = "
  		SELECT ud.usuario_id, ud.user_dia_data, udm.udc_kcal, udm.udm_kcal FROM user_dia ud, user_dia_macros udm where udm.user_dia_id = ud.user_dia_id and ud.usuario_id = ?";

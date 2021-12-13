@@ -72,7 +72,6 @@ class _DashboardState extends State<Dashboard> {
                     var data = snapshot.data.data;
                     var lista = data.detalhes.map((e) => e.data).toList();
                     var indexofselectedday = data.detalhes.indexWhere((element) => element.data.day == _selectedDay.day);
-                    print(lista);
                     return Column(
                       children: [
                         TableCalendar(
@@ -118,8 +117,7 @@ class _DashboardState extends State<Dashboard> {
                           onDaySelected: (selectedDay, focusedDay) {
                             setState(() {
                               _selectedDay = selectedDay;
-                              _focusedDay = focusedDay;
-                              print(_selectedDay); // update `_focusedDay` here as well
+                              _focusedDay = focusedDay; // update `_focusedDay` here as well
                             });
                           },
                           calendarStyle: CalendarStyle(
@@ -133,7 +131,11 @@ class _DashboardState extends State<Dashboard> {
                         ),
                         Container(
                           margin: EdgeInsets.only(top: 25),
-                          child: _selectedDay == _focusedDay ? Row(
+                          child: 
+                            _selectedDay == _focusedDay 
+                              && 
+                             indexofselectedday  != -1
+                            ? Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               Text("Limite de\ncalorias"),

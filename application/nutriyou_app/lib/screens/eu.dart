@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nutriyou_app/const.dart';
+import 'package:nutriyou_app/routing_constants.dart';
+import 'package:nutriyou_app/screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MeView extends StatefulWidget {
@@ -10,6 +13,23 @@ class MeView extends StatefulWidget {
 }
 
 class _MeViewState extends State<MeView> {
+
+  getKeys() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getKeys();
+
+    final prefsMap = Map<String, dynamic>();
+    for(String key in keys) {
+      prefsMap[key] = prefs.get(key);
+    }
+
+    return prefsMap;
+  }
+
+  logout() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.clear();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,69 +42,88 @@ class _MeViewState extends State<MeView> {
         body: SingleChildScrollView(
           padding: EdgeInsets.symmetric(vertical: 20),
           child: FutureBuilder(
+            future: getKeys(),
             builder: (context, snapshot){
-              return Column(
-              children: [
-                /*SizedBox(
-                  height: 115,
-                  width: 115,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    overflow: Overflow.visible,
-                    children: [
-                      CircleAvatar(
-                        backgroundImage: AssetImage("images/person.png"),
-                      ),
-                      Positioned(
-                        right: -16,
-                        bottom: 0,
-                        child: SizedBox(
-                          height: 50,
-                          width: 50,
-                          child: ElevatedButton(
-                            style: ButtonStyle(
-                                alignment: Alignment.center,
-                                shape: MaterialStateProperty.all(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(50),
-                                    side: BorderSide(color: Colors.white),
-                                  ),
-                                ),
-                                backgroundColor: MaterialStateProperty.all(Colors.grey.shade100)
-                            ),
-                            onPressed: () {},
-                            child: Icon(Icons.camera, size: 20, color: Colors.teal,),
+              if(snapshot.hasData){
+                return Column(
+                  children: [
+                    /*SizedBox(
+                      height: 115,
+                      width: 115,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        overflow: Overflow.visible,
+                        children: [
+                          CircleAvatar(
+                            backgroundImage: AssetImage("images/person.png"),
                           ),
-                        ),
+                          Positioned(
+                            right: -16,
+                            bottom: 0,
+                            child: SizedBox(
+                              height: 50,
+                              width: 50,
+                              child: ElevatedButton(
+                                style: ButtonStyle(
+                                    alignment: Alignment.center,
+                                    shape: MaterialStateProperty.all(
+                                      RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(50),
+                                        side: BorderSide(color: Colors.white),
+                                      ),
+                                    ),
+                                    backgroundColor: MaterialStateProperty.all(Colors.grey.shade100)
+                                ),
+                                onPressed: () {},
+                                child: Icon(Icons.camera, size: 20, color: Colors.teal,),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),*/
+                      SizedBox(height: 10),
+                      Text(snapshot.data['nome']),
+                      Text(snapshot.data['email']),
+                      Text("ID: "+snapshot.data['token']),
+                      SizedBox(height: 20),
+                      ProfileMenu(
+                        text: "Meus Pacientes",
+                        icon: Icons.person_search_rounded,
+                        press: () {},
+                        visivel: snapshot.data['tipo'] == 1? true : false,
+                      ),
+                      ProfileMenu(
+                        text: "Configurações",
+                        icon: Icons.settings,
+                        press: () {},
+                        visivel: true,
+                      ),
+                      ProfileMenu(
+                        text: "Log Out",
+                        icon: Icons.exit_to_app_rounded,
+                        press: () {
+                          logout();
+                          print(ModalRoute.of(context).settings.name);
+                          Navigator.pop(context);
+                          Navigator.pushReplacement(
+                            context, 
+                            MaterialPageRoute(
+                              settings: RouteSettings(name: '/login'),
+                              builder: (BuildContext context) {
+                                return LoginUser();
+                              },
+                            ),
+                          );
+                        },
+                        visivel: true,
                       ),
                     ],
-                  ),
-                ),*/
-                SizedBox(height: 10),
-                Text(getNome().toString()),
-                Text("nicoleeguido@gmail.com"),
-                Text("ID: 8B0OLBCT6Y"),
-                SizedBox(height: 20),
-                ProfileMenu(
-                  text: "Adicionar Pacientes",
-                  icon: Icons.person_add,
-                  press: () {},
-                  visivel: false,
-                ),
-                ProfileMenu(
-                  text: "Configurações",
-                  icon: Icons.settings,
-                  press: () {},
-                  visivel: true,
-                ),
-                ProfileMenu(
-                  text: "Log Out",
-                  icon: Icons.exit_to_app_rounded,
-                  press: () {},
-                  visivel: true,
-                ),
-              ],
-            );
+                  );
+              }else{
+                return CircularProgressIndicator();
+              }
+              
             },
             
           ),

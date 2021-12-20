@@ -3,7 +3,7 @@
 	
 	include(conexao);
 	
-	$keys=array('profissional', 'token');
+	$keys=array('usuario_id', 'perm');
 	
 	//
 	for ($i = 0; $i < count($keys); $i++){
@@ -16,12 +16,11 @@
 		 }
 	
 	}
+	$perm = $obj['perm'];
+	$usuario_id = $obj['usuario_id'];
 	
-	$profissionalId = $obj['profissional'];
-	$token = $obj['token'];
-	
-	/*$profissionalId = 1;
-	$token = "b4hshbs2cnve";*/
+	/*$perm = 0;
+	$usuario_id = 1;*/
 	
 	// DADOS PARA TESTE
 	/*$receita_id = 1;
@@ -29,15 +28,16 @@
 	$stepdesc = "descricao";*/
 
 	$select = $mysqli->prepare("
-		INSERT INTO paciente_profissional (paciente_id, profissional_id) value ((select usuario_id from usuario where usuario_token = ?), ?)");
-	$select->bind_param("ss",$token, $profissionalId);
+		UPDATE usuario set usuario_permit_profissional = ? where usuario_id = ?
+		");
+	$select->bind_param("ss",$perm, $usuario_id);
 	if($select->execute()){
 		//adding the user data in response
 		$response['error'] = false;
-		$response['message'] = 'Paciente adicionado com sucesso!';
+		$response['message'] = 'Permissao modificada!';
 	}else{
 		$response['error'] = true;
-		$response['message'] = 'Paciente não adicionado!';
+		$response['message'] = 'Permissão não modificada!';
 	}
 
 	echo json_encode($response, JSON_UNESCAPED_UNICODE);

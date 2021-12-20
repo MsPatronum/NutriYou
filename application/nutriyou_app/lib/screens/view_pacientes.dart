@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:nutriyou_app/const.dart';
 import 'package:nutriyou_app/models/patientsListModel.dart';
+import 'package:nutriyou_app/screens/dashboard.dart';
 import 'package:nutriyou_app/screens/viewRecipeImages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -116,62 +117,75 @@ Future removePatient(token) async {
                         itemCount: snapshot.data.data.listPatients.length,
                         itemBuilder: (BuildContext context, int index){
                           var data = snapshot.data.data.listPatients;
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                margin: EdgeInsets.only(bottom: 15),
-                                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15),
-                                  color: Colors.white,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.2),
-                                      spreadRadius: 2,
-                                      blurRadius: 2,
-                                      offset: Offset(0, 0),
-                                    )
-                                  ],
+                          return GestureDetector(
+                            onTap: (){
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  settings: RouteSettings(name: '/view_dashboard'),
+                                  builder: (BuildContext context) {
+                                    return Dashboard(paciente_id: data[index].pacienteId,);
+                                  },
                                 ),
-                                child: Row(
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          width: MediaQuery.of(context).size.width * 0.6,
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Text(data[index].nomeCompleto)
-                                            ],
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                    Container(
-                                      width: MediaQuery.of(context).size.width * 0.09,
-                                      child: IconButton(
-                                        onPressed: (){
-                                          removePatient(data[index].pacienteToken);
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(
-                                              settings: RouteSettings(name: '/view_patients'),
-                                              builder: (BuildContext context) {
-                                                return ViewPatient();
-                                              },
-                                            ),
-                                          );
-                                        }, 
-                                        icon: Icon(Icons.delete_rounded), 
-                                        color: Colors.pink,
+                              );
+                            },
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  margin: EdgeInsets.only(bottom: 15),
+                                  padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(15),
+                                    color: Colors.white,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.2),
+                                        spreadRadius: 2,
+                                        blurRadius: 2,
+                                        offset: Offset(0, 0),
                                       )
-                                    ),
-                                  ],
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: MediaQuery.of(context).size.width * 0.6,
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Text(data[index].nomeCompleto)
+                                              ],
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                      Container(
+                                        width: MediaQuery.of(context).size.width * 0.09,
+                                        child: IconButton(
+                                          onPressed: (){
+                                            removePatient(data[index].pacienteToken);
+                                            Navigator.pushReplacement(
+                                              context,
+                                              MaterialPageRoute(
+                                                settings: RouteSettings(name: '/view_patients'),
+                                                builder: (BuildContext context) {
+                                                  return ViewPatient();
+                                                },
+                                              ),
+                                            );
+                                          }, 
+                                          icon: Icon(Icons.delete_rounded), 
+                                          color: Colors.pink,
+                                        )
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           );
                         },
                       ),

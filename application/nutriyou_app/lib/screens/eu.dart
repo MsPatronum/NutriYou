@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nutriyou_app/const.dart';
 import 'package:nutriyou_app/routing_constants.dart';
+import 'package:nutriyou_app/screens/configs.dart';
 import 'package:nutriyou_app/screens/login.dart';
 import 'package:nutriyou_app/screens/view_pacientes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -107,7 +108,17 @@ class _MeViewState extends State<MeView> {
                       ProfileMenu(
                         text: "Configurações",
                         icon: Icons.settings,
-                        press: () {},
+                        press: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              settings: RouteSettings(name: '/view_configs'),
+                              builder: (BuildContext context){
+                                return ViewConfigs();
+                              }
+                            )
+                          );
+                        },
                         visivel: true,
                       ),
                       ProfileMenu(

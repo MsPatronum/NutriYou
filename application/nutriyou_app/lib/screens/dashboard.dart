@@ -8,7 +8,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class Dashboard extends StatefulWidget {
+  final int paciente_id;
 
+  const Dashboard({Key key, this.paciente_id}) : super(key: key);
   @override
   _DashboardState createState() => _DashboardState();
 }
@@ -19,11 +21,11 @@ class _DashboardState extends State<Dashboard> {
 
   Future<CalendarModel> fetchEvents() async{
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var usuario_id = prefs.getInt('id');
+    var usuarioId = prefs.getInt('id');
 
     var url = link("dashboard/fetchcalendar.php");
 
-    var data = {'usuario_id': usuario_id};
+    var data = {'usuario_id': widget.paciente_id == null? usuarioId : widget.paciente_id };
 
     var response = await  http.post(Uri.parse(url), body: json.encode(data));
     if(response.statusCode == 200){
@@ -36,11 +38,11 @@ class _DashboardState extends State<Dashboard> {
 
    Future<DaysCalendarModel> fetchDays() async{
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var usuario_id = prefs.getInt('id');
+    var usuarioId = prefs.getInt('id');
 
     var url = link("dashboard/listdays.php");
 
-    var data = {'usuario_id': usuario_id};
+    var data = {'usuario_id': usuarioId};
 
     var response = await  http.post(Uri.parse(url), body: json.encode(data));
     print(data);
@@ -61,6 +63,25 @@ class _DashboardState extends State<Dashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: buildTitle("Resumo mensal"),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: widget.paciente_id== null? null:  GestureDetector(
+            onTap: () {
+                Navigator.pop(context);
+            },
+            child: Padding(
+              padding: EdgeInsets.only(left: 15),
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: Colors.black,
+                size: 30,
+              ),
+            )
+
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -157,4 +178,18 @@ class _DashboardState extends State<Dashboard> {
       ),
     );
   }
+}
+
+buildTitle(String text){
+  return Padding(
+    padding: EdgeInsets.all(8),
+    child: Text(
+      text,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        color: Colors.black,
+        fontSize: 22,
+      ),
+    ),
+  );
 }

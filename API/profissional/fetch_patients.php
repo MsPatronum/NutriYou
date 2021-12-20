@@ -42,7 +42,7 @@
             $response['message'] = "Não foi possível retornar nenhum dado.";
 		}
 	}else{
-		$response['error'] = false;
+		$response['error'] = true;
 		$response['cod'] = 400;
         $response['message'] = 'Não foi possível executar a query de retorno.';
 	}
